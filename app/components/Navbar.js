@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Navbar() {
     return (
       <header className="w-full bg-white text-black shadow-md">
@@ -8,9 +10,9 @@ export default function Navbar() {
   
           {/* Menu Items */}
           <ul className="hidden md:flex gap-6 text-sm font-medium">
-            <li><a href="#">Anillos</a></li>
-            <li><a href="#">Collares</a></li>
-            <li><a href="#">Promociones</a></li>
+          <li><Link href="/anillos">Anillos</Link></li>
+          <li><Link href="/collares">Collares</Link></li>
+          <li><Link href="/promociones">Promociones</Link></li> {/* Optional */}
           </ul>
   
           {/* Search + Icons */}
