@@ -2,15 +2,19 @@ import Navbar from "./components/Navbar";
 import PromoBanner from "./components/PromoBanner";
 import BannerSection from "./components/BannerSection";
 
-
 export default function Home() {
   return (
-    <main>
+    <main className="flex flex-col items-center justify-start min-h-screen bg-white text-gray-900">
       <Navbar />
       <PromoBanner />
       <BannerSection />
-      {/* Your homepage content goes here */}
+
+      {/* ✨ Future sections */}
+      {/* <ProductShowcase /> */}
+      {/* <AboutSection /> */}
+      {/* <Footer /> */}
     </main>
   );
 }
+
 

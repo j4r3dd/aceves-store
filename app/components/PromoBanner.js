@@ -1,7 +1,10 @@
 export default function PromoBanner() {
     return (
-      <div className="w-full bg-pink-300 text-black text-center py-3 px-4">
-        <p className="text-sm md:text-base font-semibold">
+      <div
+        className="w-full text-primary text-center py-3 px-4 shadow-sm"
+        style={{ backgroundColor: '#eaf0f2' }}
+      >
+        <p className="text-sm md:text-base font-semibold tracking-wide">
           Envío gratis en pedidos desde $999 🚚
         </p>
       </div>
