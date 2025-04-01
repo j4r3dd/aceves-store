@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +25,7 @@ export default function Navbar() {
         {/* Icons + Hamburger */}
         <div className="flex items-center gap-4">
           <button onClick={() => setIsOpen(!isOpen)} className="md:hidden text-2xl">
-            ☰
+            {isOpen ? '✕' : '☰'}
           </button>
           <input
             type="text"
@@ -36,16 +37,26 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* ✅ Mobile Menu with Animation */}
-      {isOpen && (
-        <div className="md:hidden px-6 pb-4 animate-slideDown">
-          <ul className="flex flex-col gap-4 text-sm font-medium tracking-wide">
-            <li><Link href="/anillos" className="hover:text-accent transition-colors">Anillos</Link></li>
-            <li><Link href="/collares" className="hover:text-accent transition-colors">Collares</Link></li>
-            <li><Link href="/promociones" className="hover:text-accent transition-colors">Promociones</Link></li>
-          </ul>
-        </div>
-      )}
+      {/* Mobile Menu w/ Framer Motion */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className="md:hidden px-6 pb-4"
+          >
+            <ul className="flex flex-col gap-4 text-sm font-medium tracking-wide">
+              <li><Link href="/anillos" className="hover:text-accent transition-colors">Anillos</Link></li>
+              <li><Link href="/collares" className="hover:text-accent transition-colors">Collares</Link></li>
+              <li><Link href="/promociones" className="hover:text-accent transition-colors">Promociones</Link></li>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
+
