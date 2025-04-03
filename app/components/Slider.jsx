@@ -1,10 +1,10 @@
-// app/components/Slider.jsx
 'use client';
 
 import 'keen-slider/keen-slider.min.css';
 import { useKeenSlider } from 'keen-slider/react';
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function Slider({ images }) {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -21,42 +21,52 @@ export default function Slider({ images }) {
 
   return (
     <div className="relative w-full max-w-md mx-auto">
-      {/* Slider */}
-      <div ref={sliderRef} className="keen-slider rounded-lg overflow-hidden">
+      {/* Slider Container */}
+      <div ref={sliderRef} className="keen-slider rounded-lg overflow-hidden bg-white">
         {images.map((src, idx) => (
-          <div key={idx} className="keen-slider__slide">
-            <img src={src} alt={`Imagen ${idx + 1}`} className="w-full h-auto object-cover" />
+          <div key={idx} className="keen-slider__slide flex items-center justify-center bg-white">
+            <Image
+              src={src}
+              alt={`Imagen ${idx + 1}`}
+              width={600}
+              height={600}
+              priority={idx === 0} // Preload first image
+              className="w-full h-auto object-contain"
+              unoptimized={false}
+            />
           </div>
         ))}
       </div>
 
-      {/* Arrows */}
-      <button
-        onClick={() => instanceRef.current?.prev()}
-        className="absolute top-1/2 left-2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md"
-      >
-        <ChevronLeft size={20} />
-      </button>
-      <button
-        onClick={() => instanceRef.current?.next()}
-        className="absolute top-1/2 right-2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md"
-      >
-        <ChevronRight size={20} />
-      </button>
+      {/* Navigation Arrows */}
+      {instanceRef.current && (
+        <>
+          <button
+            onClick={() => instanceRef.current?.prev()}
+            className="absolute top-1/2 -translate-y-1/2 left-2 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition z-10"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            onClick={() => instanceRef.current?.next()}
+            className="absolute top-1/2 -translate-y-1/2 right-2 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition z-10"
+          >
+            <ChevronRight />
+          </button>
+        </>
+      )}
 
-      {/* Pagination Dots */}
-      <div className="flex justify-center gap-2 mt-4">
+      {/* Dots Indicator */}
+      <div className="flex justify-center mt-4 gap-2">
         {images.map((_, idx) => (
           <div
             key={idx}
-            className={`w-2 h-2 rounded-full transition-colors duration-200 cursor-pointer ${
-              currentSlide === idx ? 'bg-black' : 'bg-gray-400'
+            className={`h-2 w-2 rounded-full ${
+              idx === currentSlide ? 'bg-black' : 'bg-gray-300'
             }`}
-            onClick={() => instanceRef.current?.moveToIdx(idx)}
           />
         ))}
       </div>
     </div>
   );
 }
-

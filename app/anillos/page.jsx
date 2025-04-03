@@ -20,7 +20,7 @@ export default function AnillosPage() {
             <div className="bg-white border rounded-2xl p-4 shadow-sm hover:shadow-lg transition duration-300 ease-in-out cursor-pointer group-hover:scale-[1.02]">
               <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-lg mb-4 bg-background">
                 <img
-                  src={product.image}
+                  src={product.images?.[0]}
                   alt={product.name}
                   className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                 />
