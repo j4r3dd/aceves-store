@@ -25,14 +25,16 @@ export default function Slider({ images }) {
       <div ref={sliderRef} className="keen-slider rounded-lg overflow-hidden bg-white">
         {images.map((src, idx) => (
           <div key={idx} className="keen-slider__slide flex items-center justify-center bg-white">
-            <img
+            <Image
               src={src}
               alt={`Imagen ${idx + 1}`}
+              width={600}
+              height={600}
+              priority={idx === 0}
               className="w-full h-auto object-contain"
-              unoptimized={false}
             />
           </div>
-        ))}npm
+        ))}
       </div>
 
       {/* Navigation Arrows */}
