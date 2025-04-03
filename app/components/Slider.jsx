@@ -32,7 +32,7 @@ export default function Slider({ images }) {
               unoptimized={false}
             />
           </div>
-        ))}
+        ))}npm
       </div>
 
       {/* Navigation Arrows */}
