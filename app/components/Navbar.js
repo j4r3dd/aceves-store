@@ -2,9 +2,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '../../context/CartContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { cart } = useCart(); // 👈 get cart
 
   return (
     <header className="w-full bg-white text-primary shadow-sm sticky top-0 z-50">
@@ -32,7 +34,22 @@ export default function Navbar() {
             placeholder="Buscar"
             className="hidden md:block border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-accent"
           />
-          <span className="text-lg hover:text-accent cursor-pointer">🛒</span>
+
+          {/* 🛒 Cart icon with badge */}
+          <Link href="/cart" className="relative hover:text-accent">
+            <div className="relative cursor-pointer">
+              <span className="text-lg">🛒</span>
+              {cart.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  {cart.length}
+                </span>
+              )}
+            </div>
+          </Link>
+
+
+
+          {/* 👤 Account icon */}
           <span className="text-lg hover:text-accent cursor-pointer">👤</span>
         </div>
       </nav>
@@ -59,4 +76,3 @@ export default function Navbar() {
     </header>
   );
 }
-
