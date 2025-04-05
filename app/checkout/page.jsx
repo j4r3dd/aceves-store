@@ -25,12 +25,13 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (!showPayPal || paypalLoaded) return;
 
-    // Avoid double-injection
+    // Evitar inyectar el script más de una vez
     if (document.getElementById('paypal-sdk')) return;
 
     const script = document.createElement('script');
     script.id = 'paypal-sdk';
-    script.src = "https://www.paypal.com/sdk/js?client-id=Ad8bdQOXCXQq6itgPUhkh3C3xuUIuWORQyuPfQ8YGgf1IRz5IzNix1hutXurVnnBdxKktPKaPl_wj-7I&currency=MXN&components=buttons&intent=capture";
+    script.src =
+      'https://www.paypal.com/sdk/js?client-id=Ad8bdQOXCXQq6itgPUhkh3C3xuUIuWORQyuPfQ8YGgf1IRz5IzNix1hutXurVnnBdxKktPKaPl_wj-7I&currency=MXN&components=buttons&intent=capture';
     script.onload = () => {
       console.log('✅ PayPal SDK loaded');
       setPaypalLoaded(true);
@@ -50,15 +51,15 @@ export default function CheckoutPage() {
               ],
             });
           },
-
           onApprove: async (data, actions) => {
+            // IMPORTANTE: Retornar la promesa de capture
             const order = await actions.order.capture();
-          
-            // Format cart items as text
+
+            // Formateamos los productos
             const productos = cart
               .map((item) => `${item.quantity}x ${item.name}`)
               .join(', ');
-          
+
             const payload = {
               nombre: form.nombre,
               calle: form.calle,
@@ -70,33 +71,37 @@ export default function CheckoutPage() {
               productos,
               total: total.toFixed(2),
             };
-          
-            // Send to Google Sheets
+
+            // Envío a Google Sheets
             try {
-              const response = await fetch("https://script.google.com/macros/s/AKfycby6assVWNvYclql3DxL_MqLIDfv0GgPW7PXbsdEYez93r9RAVFTJ2lE3t2ebqdeXw/exec", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/x-www-form-urlencoded",
-                },
-                body: new URLSearchParams(payload),
-              });
-              
+              const response = await fetch(
+                'https://script.google.com/macros/s/AKfycby6assVWNvYclql3DxL_MqLIDfv0GgPW7PXbsdEYez93r9RAVFTJ2lE3t2ebqdeXw/exec',
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                  },
+                  body: new URLSearchParams(payload),
+                }
+              );
+
               const result = await response.text();
-              console.log("Respuesta del servidor:", result);
-              
-              if (result === "OK") {
+              console.log('Respuesta del servidor:', result);
+
+              if (result === 'OK') {
                 alert(`✅ Pago completado por ${form.nombre} 🎉`);
-                console.log("🧾 Pedido enviado a Google Sheets.");
+                console.log('🧾 Pedido enviado a Google Sheets.');
               } else {
-                throw new Error("La respuesta del servidor no fue OK");
+                throw new Error('La respuesta del servidor no fue OK');
               }
             } catch (err) {
-              console.error("❌ Error al enviar a Google Sheets:", err);
-              alert("El pago fue exitoso, pero no se pudo guardar el pedido.");
+              console.error('❌ Error al enviar a Google Sheets:', err);
+              alert('El pago fue exitoso, pero no se pudo guardar el pedido.');
             }
-      
+
+            // MUY IMPORTANTE: retornar la orden para que PayPal cierre el popup
+            return order;
           },
-          
           onError: (err) => {
             console.error('❌ Error en PayPal:', err);
             alert('Hubo un error al procesar el pago.');
@@ -106,7 +111,7 @@ export default function CheckoutPage() {
     };
 
     document.body.appendChild(script);
-  }, [showPayPal, paypalLoaded, total, form.nombre]);
+  }, [showPayPal, paypalLoaded, total, cart, form]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
