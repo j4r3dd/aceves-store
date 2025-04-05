@@ -4,9 +4,9 @@ import { useCart } from '../../context/CartContext';
 import Link from 'next/link';
 
 export default function CartPage() {
-  const { cart } = useCart();
+  const { cart, removeFromCart, increaseQuantity, decreaseQuantity } = useCart();
 
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
@@ -25,8 +25,36 @@ export default function CartPage() {
             <div key={idx} className="flex items-center justify-between border-b pb-4">
               <div>
                 <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-gray-600">${item.price} MXN</p>
+                <p className="text-sm text-gray-600">
+                  ${item.price} x {item.quantity} = ${item.price * item.quantity} MXN
+                </p>
+
+                {/* Quantity controls */}
+                <div className="flex items-center gap-2 mt-2">
+                  <button
+                    onClick={() => decreaseQuantity(item.id)}
+                    className="px-2 py-1 text-sm border rounded hover:bg-gray-100"
+                  >
+                    −
+                  </button>
+                  <span className="text-sm font-medium">{item.quantity}</span>
+                  <button
+                    onClick={() => increaseQuantity(item.id)}
+                    className="px-2 py-1 text-sm border rounded hover:bg-gray-100"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Remove button */}
+                <button
+                  onClick={() => removeFromCart(item.id)}
+                  className="text-red-600 text-sm mt-2 hover:underline block"
+                >
+                  Quitar
+                </button>
               </div>
+
               <img
                 src={item.images?.[0]}
                 alt={item.name}
@@ -40,9 +68,11 @@ export default function CartPage() {
             <p>${total.toLocaleString()} MXN</p>
           </div>
 
-          <button className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-900">
-            Proceder al pago
-          </button>
+          <Link href="/checkout">
+            <button className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-900">
+              Proceder al pago
+            </button>
+          </Link>
         </div>
       )}
     </div>
