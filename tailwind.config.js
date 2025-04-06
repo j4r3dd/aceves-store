@@ -1,17 +1,16 @@
 /** @type {import('tailwindcss').Config} */
-import aspectRatio from '@tailwindcss/aspect-ratio';
+const aspectRatio = require('@tailwindcss/aspect-ratio');
 
-export default {
+module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
       colors: {
         primary: "#092536",      // Deep navy
         background: "#eaf0f2",   // Light ice blue
-        accent: "#749bbb",       // Soft blue
+        accent: "#759bbb",       // Soft blue
       },
       keyframes: {
         slideDown: {

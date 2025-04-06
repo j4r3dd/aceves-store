@@ -9,19 +9,19 @@ export default function Navbar() {
   const { cart } = useCart(); // 👈 get cart
 
   return (
-    <header className="w-full bg-white text-primary shadow-sm sticky top-0 z-50">
+    <header className="w-full bg-white text-[#092536] shadow-sm sticky top-0 z-50">
       <nav className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
 
         {/* Logo */}
         <Link href="/">
-          <img src="/logo.png" alt="Aceves logo" className="h-10 w-auto cursor-pointer" />
+          <img src="/logo.png" alt="Aceves logo" className="h-20 w-auto cursor-pointer" />
         </Link>
 
         {/* Desktop Menu */}
-        <ul className="hidden md:flex gap-6 text-sm font-medium tracking-wide">
-          <li><Link href="/anillos" className="hover:text-accent transition-colors">Anillos</Link></li>
-          <li><Link href="/collares" className="hover:text-accent transition-colors">Collares</Link></li>
-          <li><Link href="/promociones" className="hover:text-accent transition-colors">Promociones</Link></li>
+        <ul className="hidden md:flex gap-6 text-base font-medium tracking-wide">
+          <li><Link href="/anillos" className="hover:text-[#759bbb] transition-colors">Anillos</Link></li>
+          <li><Link href="/collares" className="hover:text-[#759bbb] transition-colors">Collares</Link></li>
+          <li><Link href="/promociones" className="hover:text-[#759bbb] transition-colors">Promociones</Link></li>
         </ul>
 
         {/* Icons + Hamburger */}
@@ -65,10 +65,10 @@ export default function Navbar() {
             transition={{ duration: 0.25, ease: 'easeOut' }}
             className="md:hidden px-6 pb-4"
           >
-            <ul className="flex flex-col gap-4 text-sm font-medium tracking-wide">
-              <li><Link href="/anillos" className="hover:text-accent transition-colors">Anillos</Link></li>
-              <li><Link href="/collares" className="hover:text-accent transition-colors">Collares</Link></li>
-              <li><Link href="/promociones" className="hover:text-accent transition-colors">Promociones</Link></li>
+            <ul className="flex flex-col gap-4 text-base font-medium tracking-wide">
+              <li><Link href="/anillos" className="hover:text-[#092536] transition-colors">Anillos</Link></li>
+              <li><Link href="/collares" className="hover:text-[#092536] transition-colors">Collares</Link></li>
+              <li><Link href="/promociones" className="hover:text-[#092536] transition-colors">Promociones</Link></li>
             </ul>
           </motion.div>
         )}

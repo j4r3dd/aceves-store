@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function BannerSection() {
   return (
     <section className="w-full px-4 py-6 sm:px-6 lg:px-8">
-      <div className="overflow-hidden rounded-2xl shadow-lg">
+      <div className="max-w-screen-lg mx-auto overflow-hidden rounded-2xl shadow-lg">
         <Link href="/producto">
           <img
             src="/Banner.png"
