@@ -7,7 +7,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  const correctPassword = process.env.NEXT_PUBLIC_ADMIN_UPLOAD_PASSWORD ;
+  const correctPassword = process.env.ADMIN_UPLOAD_PASSWORD ;
 
   const handleLogin = () => {
     if (password === correctPassword) {

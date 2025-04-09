@@ -7,7 +7,7 @@ export default function AdminHome() {
   const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
 
-  const correctPassword = process.env.NEXT_PUBLIC_ADMIN_UPLOAD_PASSWORD || 'aceves2024';
+  const correctPassword = process.env.ADMIN_UPLOAD_PASSWORD;
 
   const handleLogin = () => {
     if (password === correctPassword) {
