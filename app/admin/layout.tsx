@@ -1,17 +1,30 @@
-// app/admin/layout.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const router = useRouter();
 
-  const correctPassword = process.env.ADMIN_UPLOAD_PASSWORD ;
+  // Check cookie via API route or just wait for login
+  useEffect(() => {
+    fetch('/api/check-auth')
+      .then((res) => res.ok && setIsAuthorized(true))
+      .catch(() => {});
+  }, []);
 
-  const handleLogin = () => {
-    if (password === correctPassword) {
+  const handleLogin = async () => {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (res.ok) {
       setIsAuthorized(true);
+      router.refresh(); // optional
     } else {
       alert('Incorrect password');
     }
