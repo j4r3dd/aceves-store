@@ -30,8 +30,7 @@ export default function CheckoutPage() {
 
     const script = document.createElement('script');
     script.id = 'paypal-sdk';
-    script.src =
-      'https://www.paypal.com/sdk/js?client-id=Ad8bdQOXCXQq6itgPUhkh3C3xuUIuWORQyuPfQ8YGgf1IRz5IzNix1hutXurVnnBdxKktPKaPl_wj-7I&currency=MXN&components=buttons&intent=capture';
+    script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=MXN&components=buttons&intent=capture`;
     script.onload = () => {
       console.log('✅ PayPal SDK loaded');
       setPaypalLoaded(true);
@@ -75,7 +74,7 @@ export default function CheckoutPage() {
             // Envío a Google Sheets
             try {
               const response = await fetch(
-                'https://script.google.com/macros/s/AKfycby6assVWNvYclql3DxL_MqLIDfv0GgPW7PXbsdEYez93r9RAVFTJ2lE3t2ebqdeXw/exec',
+                process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL,
                 {
                   method: 'POST',
                   headers: {
@@ -91,6 +90,9 @@ export default function CheckoutPage() {
               if (result === 'OK') {
                 alert(`✅ Pago completado por ${form.nombre} 🎉`);
                 console.log('🧾 Pedido enviado a Google Sheets.');
+                window.location.href = `/gracias?nombre=${encodeURIComponent(form.nombre)}&orderId=${order.id}`;
+
+
               } else {
                 throw new Error('La respuesta del servidor no fue OK');
               }

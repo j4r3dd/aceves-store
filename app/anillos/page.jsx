@@ -1,8 +1,14 @@
+// app/anillos/page.jsx
+import fs from 'fs/promises';
+import path from 'path';
 import Link from 'next/link';
-import { products } from '../data/products'; 
 
-export default function AnillosPage() {
-  const anillos = products.filter(p => p.category === 'anillos');
+export default async function AnillosPage() {
+  const filePath = path.join(process.cwd(), 'public', 'data', 'products.json');
+  const jsonData = await fs.readFile(filePath, 'utf-8');
+  const allProducts = JSON.parse(jsonData);
+
+  const anillos = allProducts.filter(p => p.category === 'anillos');
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
