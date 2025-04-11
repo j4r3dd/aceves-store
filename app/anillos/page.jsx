@@ -1,23 +1,42 @@
-// app/anillos/page.jsx
 import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
-
-// Create Supabase server client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 export default async function AnillosPage() {
-  // Fetch products from Supabase
-  const { data: products, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('category', 'anillos');
+  // Create Supabase server client
+  const supabase = createServerComponentClient({ cookies });
+  
+  // Try fetching from Supabase first
+  let products = [];
+  let error = null;
+  
+  try {
+    const { data, error: supabaseError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('category', 'anillos');
+    
+    if (supabaseError) throw supabaseError;
+    products = data || [];
+  } catch (err) {
+    console.error('Error fetching from Supabase:', err);
+    error = err;
+    
+    // Fallback to local JSON file
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const filePath = path.join(process.cwd(), 'public', 'data', 'products.json');
+      const jsonData = fs.readFileSync(filePath, 'utf-8');
+      const allProducts = JSON.parse(jsonData);
+      products = allProducts.filter(p => p.category === 'anillos');
+    } catch (fileErr) {
+      console.error('Error reading fallback file:', fileErr);
+    }
+  }
 
-  if (error) {
-    console.error('Error fetching products:', error);
-    return <div>Error loading products</div>;
+  if (error && products.length === 0) {
+    return <div>Error loading products: {error.message}</div>;
   }
 
   return (
