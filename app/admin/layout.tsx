@@ -1,58 +1,44 @@
-// app/admin/layout.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabase'; // Make sure path is correct
+import { supabase } from '../../lib/supabase';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    async function checkSession() {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (data?.session) {
-          setIsAuthorized(true);
-        }
-      } catch (err) {
-        console.error('Session check error:', err);
-      } finally {
-        setLoading(false);
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (data.session) {
+        setIsAuthorized(true);
       }
-    }
-    
+      setLoading(false);
+    };
     checkSession();
   }, []);
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
-      if (error) throw error;
-      
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
       setIsAuthorized(true);
-      router.refresh();
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(err.message || 'Error al iniciar sesión');
+      router.refresh(); // refresh so layout shows children
     }
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
-  }
+  if (loading) return <div className="p-10">Cargando...</div>;
 
   if (!isAuthorized) {
     return (
