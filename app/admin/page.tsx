@@ -1,8 +1,18 @@
+// app/admin/page.tsx
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../lib/supabase'; // Make sure path is correct
 
 export default function AdminHome() {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+  };
+
   return (
     <div className="min-h-screen p-8 bg-white text-black text-center">
       <h1 className="text-4xl font-bold mb-6">🛠️ Admin Dashboard</h1>
@@ -22,10 +32,7 @@ export default function AdminHome() {
         </Link>
 
         <button
-          onClick={async () => {
-            await fetch('/api/logout', { method: 'POST' });
-            window.location.reload();
-          }}
+          onClick={handleLogout}
           className="bg-red-600 text-white px-6 py-3 rounded hover:bg-red-700 mt-6"
         >
           🚪 Logout

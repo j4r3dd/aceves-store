@@ -1,14 +1,24 @@
 // app/anillos/page.jsx
-import fs from 'fs/promises';
-import path from 'path';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase server client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
 
 export default async function AnillosPage() {
-  const filePath = path.join(process.cwd(), 'public', 'data', 'products.json');
-  const jsonData = await fs.readFile(filePath, 'utf-8');
-  const allProducts = JSON.parse(jsonData);
+  // Fetch products from Supabase
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('category', 'anillos');
 
-  const anillos = allProducts.filter(p => p.category === 'anillos');
+  if (error) {
+    console.error('Error fetching products:', error);
+    return <div>Error loading products</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -21,7 +31,7 @@ export default async function AnillosPage() {
       <h1 className="text-3xl font-bold text-primary mb-6">Anillos</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {anillos.map((product) => (
+        {products.map((product) => (
           <Link key={product.id} href={`/producto/${product.id}`} className="group">
             <div className="bg-white border rounded-2xl p-4 shadow-sm hover:shadow-lg transition duration-300 ease-in-out cursor-pointer group-hover:scale-[1.02]">
               <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-lg mb-4 bg-background">
