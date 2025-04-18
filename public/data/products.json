@@ -19,5 +19,15 @@
     "images": [
       "https://hnaptwk79kknvilx.public.blob.vercel-storage.com/products/1-E7ecm2herGGUfvENkkcneNdrXjatKz.JPG"
     ]
+  },
+  {
+    "id": "constelacion-1744745689563",
+    "name": "Constelacion",
+    "category": "anillos",
+    "price": 1000,
+    "description": "",
+    "images": [
+      "https://hnaptwk79kknvilx.public.blob.vercel-storage.com/products/rings/1-geF4PGnj7n7H2g6J402e6WQ7hJbOv4.JPG"
+    ]
   }
 ]
