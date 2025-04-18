@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 export default function AdminDashboard() {
   const router = useRouter();
 
-  const handleNavigation = (path) => {
+  const handleNavigation = (path: string) => {
     router.push(path);
   };
 
@@ -25,6 +25,13 @@ export default function AdminDashboard() {
           className="block text-center bg-black text-white py-3 px-4 rounded hover:bg-gray-800 transition"
         >
           Manage Products
+        </button>
+
+        <button
+          onClick={() => handleNavigation('/admin/banners')}
+          className="block text-center bg-black text-white py-3 px-4 rounded hover:bg-gray-800 transition"
+        >
+          Manage Banners
         </button>
       </div>
     </div>

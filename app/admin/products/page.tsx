@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 
 export default function ProductManagerPage() {
-  const [jsonText, setJsonText] = useState('');
-  const [jsonMessage, setJsonMessage] = useState('');
+  const [products, setProducts] = useState([]);
   const [addMessage, setAddMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -17,54 +16,21 @@ export default function ProductManagerPage() {
     imageText: '',
   });
 
-  // Save to both Supabase and JSON file
-  const handleSaveProducts = async () => {
+  const fetchProducts = async () => {
     try {
-      setIsLoading(true);
-      const parsed = JSON.parse(jsonText);
-
-      // Save to local JSON file first
-      const res = await fetch('/api/admin/save-products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(parsed),
-      });
-
-      // Then synchronize with Supabase
-      // First delete all existing products
-      const { error: deleteError } = await supabase
-        .from('products')
-        .delete()
-        .neq('id', '0'); // Delete all records
-      
-      if (deleteError) throw deleteError;
-
-      // Then insert all products from the JSON
-      const { error: insertError } = await supabase
-        .from('products')
-        .insert(parsed);
-
-      if (insertError) throw insertError;
-
-      const result = await res.text();
-      setJsonMessage(result + ' (Synced with Supabase)');
+      const { data, error } = await supabase.from('products').select('*');
+      if (error) throw error;
+      setProducts(data);
     } catch (err) {
-      console.error('Save error:', err);
-      setJsonMessage('❌ Error: ' + (err.message || 'Failed to save products'));
-    } finally {
-      setIsLoading(false);
+      console.error('Error loading products:', err);
     }
   };
 
   const handleAddProduct = async () => {
     setAddMessage('');
     setIsLoading(true);
-    
-    try {
-      // Get current products from JSON file
-      const res = await fetch('/data/products.json');
-      const currentProducts = await res.json();
 
+    try {
       const id = `${newProduct.name.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now()}`;
       const images = newProduct.imageText.split(',').map((url) => url.trim());
 
@@ -77,33 +43,12 @@ export default function ProductManagerPage() {
         images,
       };
 
-      const updated = [...currentProducts, newEntry];
+      const { error } = await supabase.from('products').insert(newEntry);
+      if (error) throw error;
 
-      // Save to JSON file
-      const save = await fetch('/api/admin/save-products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated),
-      });
-
-      if (!save.ok) throw new Error('Save to JSON failed');
-
-      // Add to Supabase
-      const { error: supabaseError } = await supabase
-        .from('products')
-        .insert(newEntry);
-
-      if (supabaseError) throw supabaseError;
-
-      setAddMessage(`✅ Product "${newEntry.name}" added to JSON and Supabase!`);
+      setAddMessage(`✅ Product "${newEntry.name}" added to Supabase!`);
       setNewProduct({ name: '', category: '', price: 0, description: '', imageText: '' });
-      
-      // Refresh the products display
-      fetch('/data/products.json')
-        .then((res) => res.json())
-        .then((data) => setJsonText(JSON.stringify(data, null, 2)))
-        .catch((err) => console.error('Error loading products.json', err));
-      
+      fetchProducts(); // Refresh the list
     } catch (err) {
       console.error(err);
       setAddMessage('❌ Failed to add product: ' + (err.message || 'Unknown error'));
@@ -113,41 +58,6 @@ export default function ProductManagerPage() {
   };
 
   useEffect(() => {
-    // First try to load from Supabase
-    const fetchProducts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*');
-        
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // If Supabase has data, use it and update the JSON file
-          setJsonText(JSON.stringify(data, null, 2));
-          
-          // Sync to JSON file for consistency
-          fetch('/api/admin/save-products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          }).catch(err => {
-            console.error('Error syncing to JSON file:', err);
-          });
-          
-          return;
-        }
-      } catch (supabaseErr) {
-        console.error('Error loading from Supabase:', supabaseErr);
-      }
-      
-      // Fallback to local JSON if Supabase fails or is empty
-      fetch('/data/products.json')
-        .then((res) => res.json())
-        .then((data) => setJsonText(JSON.stringify(data, null, 2)))
-        .catch((err) => console.error('Error loading products.json', err));
-    };
-
     fetchProducts();
   }, []);
 
@@ -155,31 +65,6 @@ export default function ProductManagerPage() {
     <div className="min-h-screen p-8 bg-white text-black flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-6">🛍️ Manage Products</h1>
 
-      {/* PRODUCTS.JSON Upload Panel */}
-      <div className="w-full max-w-2xl">
-        <h2 className="text-xl font-semibold mb-4">🧾 Edit Full Products JSON & Supabase</h2>
-        <textarea
-          placeholder="Paste your products.json content here..."
-          className="w-full h-60 p-3 border font-mono text-sm rounded"
-          value={jsonText}
-          onChange={(e) => setJsonText(e.target.value)}
-        />
-        <button
-          onClick={handleSaveProducts}
-          disabled={isLoading}
-          className={`mt-4 bg-black text-white py-2 px-6 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'}`}
-        >
-          {isLoading ? 'Saving...' : 'Save to File & Supabase'}
-        </button>
-        {jsonMessage && (
-          <p className="mt-4 text-sm text-gray-600 whitespace-pre-line">{jsonMessage}</p>
-        )}
-      </div>
-
-      {/* Divider */}
-      <hr className="my-10 w-full max-w-2xl border-gray-300" />
-
-      {/* Product Form */}
       <div className="w-full max-w-2xl">
         <h2 className="text-xl font-semibold mb-4">➕ Add New Product</h2>
         <input

@@ -92,7 +92,6 @@ export default function CheckoutPage() {
                 console.log('🧾 Pedido enviado a Google Sheets.');
                 window.location.href = `/gracias?nombre=${encodeURIComponent(form.nombre)}&orderId=${order.id}`;
 
-
               } else {
                 throw new Error('La respuesta del servidor no fue OK');
               }
