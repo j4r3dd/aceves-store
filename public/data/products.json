@@ -4,11 +4,11 @@
     "name": "Anillos de Promesa \"Espacio Sideral\"",
     "category": "anillos",
     "price": 999,
+    "description": "Anillos de promesa con diseño de Astronauta y Saturno hecho en plata .925 con moissanita brillante.",
     "images": [
       "https://hnaptwk79kknvilx.public.blob.vercel-storage.com/products/rings/1-mufajgS8gQigpErZFja2xNeuPw3drf.jpg",
       "https://hnaptwk79kknvilx.public.blob.vercel-storage.com/products/rings/1-YLmtHsp1IHEbjvxnqG018vwPQop0jq.jpg"
-    ],
-    "description": "Anillos de promesa con diseño de Astronauta y Saturno hecho en plata .925 con moissanita brillante."
+    ]
   },
   {
     "id": "constelacion-1744156023213",
@@ -28,6 +28,16 @@
     "description": "",
     "images": [
       "https://hnaptwk79kknvilx.public.blob.vercel-storage.com/products/rings/1-geF4PGnj7n7H2g6J402e6WQ7hJbOv4.JPG"
+    ]
+  },
+  {
+    "id": "anilloscontelacion-1744949445961",
+    "name": "Anillos contelacion ",
+    "category": "anillos",
+    "price": 220,
+    "description": "ssss",
+    "images": [
+      "https://hnaptwk79kknvilx.public.blob.vercel-storage.com/products/rings/1-YLmtHsp1IHEbjvxnqG018vwPQop0jq.jpg"
     ]
   }
 ]

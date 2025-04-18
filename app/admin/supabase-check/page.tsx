@@ -148,11 +148,11 @@ export default function SupabaseDiagnosticsPage() {
       }
       
       // Refresh product count
-      const { data: updatedProducts } = await supabase
+      const { count, error } = await supabase
         .from('products')
-        .select('count(*)', { count: 'exact' });
+        .select('*', { count: 'exact', head: true });
         
-      setProductCount(updatedProducts ? updatedProducts.length : 0);
+      setProductCount(typeof count === 'number' ? count : 'Error counting');
       
     } catch (err) {
       console.error('Sync failed:', err);
