@@ -1,28 +1,40 @@
 // app/producto/[id]/page.jsx
+
 import ProductoView from '../ProductoView';
-import path from 'path';
-import { promises as fs } from 'fs';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 export async function generateStaticParams() {
-  const filePath = path.join(process.cwd(), 'public', 'data', 'products.json');
-  const jsonData = await fs.readFile(filePath, 'utf-8');
-  const products = JSON.parse(jsonData);
+  const supabase = createServerComponentClient({ cookies });
+
+  const { data: products, error } = await supabase
+    .from('products')
+    .select('id');
+
+  if (error) {
+    console.error('Error fetching product IDs from Supabase:', error);
+    return [];
+  }
 
   return products.map((product) => ({
-    id: product.id,
+    id: product.id.toString(), // ensure it's a string for dynamic routing
   }));
 }
 
 export default async function ProductoPage({ params }) {
+  const supabase = createServerComponentClient({ cookies });
   const { id } = params;
 
-  const filePath = path.join(process.cwd(), 'public', 'data', 'products.json');
-  const jsonData = await fs.readFile(filePath, 'utf-8');
-  const products = JSON.parse(jsonData);
+  const { data: product, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .single();
 
-  const product = products.find((p) => p.id === id);
-
-  if (!product) return <div className="p-6">Producto no encontrado.</div>;
+  if (error || !product) {
+    console.error('Error fetching product:', error);
+    return <div className="p-6">Producto no encontrado.</div>;
+  }
 
   return <ProductoView product={product} />;
 }

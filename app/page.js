@@ -1,9 +1,10 @@
-import PromoBanner from "./components/PromoBanner";
-import BannerSection from "./components/BannerSection";
+import PageWrapper from './components/PageWrapper'; // ✅ Import it!
+import PromoBanner from './components/PromoBanner';
+import BannerSection from './components/BannerSection';
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-start min-h-screen bg-white text-gray-900">
+    <PageWrapper>
       <PromoBanner />
       <BannerSection />
 
@@ -11,7 +12,7 @@ export default function Home() {
       {/* <ProductShowcase /> */}
       {/* <AboutSection /> */}
       {/* <Footer /> */}
-    </main>
+    </PageWrapper>
   );
 }
 
