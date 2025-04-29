@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import PageWrapper from '../components/PageWrapper'; // 🔁 Adjust path if needed!
+import PageWrapper from '../components/PageWrapper'; 
 
 export default async function AnillosPage() {
   const supabase = createServerComponentClient({ cookies });
@@ -67,7 +67,7 @@ export default async function AnillosPage() {
               <p className="text-lg text-gray-600">No hay anillos disponibles en este momento.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 md:gap-6">
               {products.map((product) => (
                 <Link key={product.id} href={`/producto/${product.id}`} className="group">
                   <div className="bg-white border rounded-2xl p-4 shadow-sm hover:shadow-lg transition duration-300 ease-in-out cursor-pointer group-hover:scale-[1.02]">
@@ -78,7 +78,10 @@ export default async function AnillosPage() {
                         className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
-                    <h2 className="text-lg font-semibold text-[#092536]">{product.name}</h2>
+                    <h2 className="text-base font-semibold text-[#092536] leading-tight line-clamp-2">
+                      {product.name}
+                    </h2>
+
                     <p className="text-[#092536] font-medium">${product.price} MXN</p>
                   </div>
                 </Link>
