@@ -7,43 +7,50 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
 
-  const increaseQuantity = (id) => {
+  const increaseQuantity = (id, selectedSize) => {
     setCart((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+        item.id === id && item.selectedSize === selectedSize
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
       )
     );
   };
   
-  const decreaseQuantity = (id) => {
+  const decreaseQuantity = (id, selectedSize) => {
     setCart((prev) =>
       prev
         .map((item) =>
-          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+          item.id === id && item.selectedSize === selectedSize
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
         )
-        .filter((item) => item.quantity > 0) // Remove if quantity hits 0
+        .filter((item) => item.quantity > 0) // Remove item if quantity hits 0
     );
   };
-  
 
   const addToCart = (product) => {
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === product.id);
-  
+      const existing = prev.find(
+        (item) => item.id === product.id && item.selectedSize === product.selectedSize
+      );
+
       if (existing) {
         return prev.map((item) =>
-          item.id === product.id
+          item.id === product.id && item.selectedSize === product.selectedSize
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
-  
+
       return [...prev, { ...product, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (id) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+  const removeFromCart = (id, selectedSize) => {
+    setCart((prev) => prev.filter(
+      (item) => !(item.id === id && item.selectedSize === selectedSize)
+    ));
   };
 
   return (

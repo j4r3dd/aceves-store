@@ -22,24 +22,31 @@ export default function CartPage() {
       ) : (
         <div className="space-y-6">
           {cart.map((item, idx) => (
-            <div key={idx} className="flex items-center justify-between border-b pb-4">
+            <div key={`${item.id}-${item.selectedSize}`} className="flex items-center justify-between border-b pb-4">
               <div>
                 <p className="font-medium">{item.name}</p>
+                
+                {/* Mostrar talla */}
+                {item.selectedSize && (
+                  <p className="text-sm text-gray-500">Talla: {item.selectedSize}</p>
+                )}
+                
+                {/* Precio y cantidad */}
                 <p className="text-sm text-gray-600">
-                  ${item.price} x {item.quantity} = ${item.price * item.quantity} MXN
+                  ${item.price} x {item.quantity} = ${(item.price * item.quantity).toLocaleString()} MXN
                 </p>
 
                 {/* Quantity controls */}
                 <div className="flex items-center gap-2 mt-2">
                   <button
-                    onClick={() => decreaseQuantity(item.id)}
+                    onClick={() => decreaseQuantity(item.id, item.selectedSize)}
                     className="px-2 py-1 text-sm border rounded hover:bg-gray-100"
                   >
                     −
                   </button>
                   <span className="text-sm font-medium">{item.quantity}</span>
                   <button
-                    onClick={() => increaseQuantity(item.id)}
+                    onClick={() => increaseQuantity(item.id, item.selectedSize)}
                     className="px-2 py-1 text-sm border rounded hover:bg-gray-100"
                   >
                     +
@@ -48,13 +55,14 @@ export default function CartPage() {
 
                 {/* Remove button */}
                 <button
-                  onClick={() => removeFromCart(item.id)}
+                  onClick={() => removeFromCart(item.id, item.selectedSize)}
                   className="text-red-600 text-sm mt-2 hover:underline block"
                 >
                   Quitar
                 </button>
               </div>
 
+              {/* Imagen */}
               <img
                 src={item.images?.[0]}
                 alt={item.name}

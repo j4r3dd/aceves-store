@@ -1,14 +1,24 @@
 'use client';
 
-import PageWrapper from '../components/PageWrapper'; // ✅ Adjust if needed
+import { useState } from 'react';
+import PageWrapper from '../components/PageWrapper';
 import Slider from '../components/Slider';
 import { useCart } from '../../context/CartContext';
 
 export default function ProductoView({ product }) {
   const { addToCart } = useCart();
+  const [selectedSize, setSelectedSize] = useState(null);
 
   const handleAdd = () => {
-    addToCart(product);
+    if (!selectedSize) {
+      alert('Por favor selecciona una talla.');
+      return;
+    }
+
+    addToCart({
+      ...product,
+      selectedSize
+    });
   };
 
   return (
@@ -35,22 +45,35 @@ export default function ProductoView({ product }) {
           </div>
 
           {/* Sizes */}
-          <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Talla</h3>
-            <div className="flex gap-2 flex-wrap">
-              {['Unitalla'].map((size) => (
-                <button
-                  key={size}
-                  className="border rounded-full px-6 py-2 text-[#092536] border-[#092536] hover:bg-[#092536] hover:text-white transition"
-                >
-                  {size}
-                </button>
-              ))}
+          {product.sizes && Array.isArray(product.sizes) && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Talla</h3>
+              <div className="flex gap-2 flex-wrap">
+                {product.sizes.map(({ size, stock }) => {
+                  const isOutOfStock = stock === 0;
+                  const isSelected = selectedSize === size;
+
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => !isOutOfStock && setSelectedSize(size)}
+                      disabled={isOutOfStock}
+                      className={`
+                        border rounded-full px-6 py-2 text-sm transition
+                        ${isSelected ? 'bg-[#092536] text-white' : 'text-[#092536] border-[#092536] hover:bg-[#092536] hover:text-white'}
+                        ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}
+                      `}
+                    >
+                      {size} {isOutOfStock && '(Agotado)'}
+                    </button>
+                  );
+                })}
+              </div>
+              <a href="#" className="text-xs text-gray-500 mt-1 inline-block underline">
+                Guía de tallas
+              </a>
             </div>
-            <a href="#" className="text-xs text-gray-500 mt-1 inline-block underline">
-              Guía de tallas
-            </a>
-          </div>
+          )}
 
           {/* Add to Cart Button */}
           <button
