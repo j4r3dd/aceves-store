@@ -1,5 +1,5 @@
 'use client';
-
+import Link from 'next/link'
 import { useState } from 'react';
 import PageWrapper from '../components/PageWrapper';
 import Slider from '../components/Slider';
@@ -69,9 +69,9 @@ export default function ProductoView({ product }) {
                   );
                 })}
               </div>
-              <a href="#" className="text-xs text-gray-500 mt-1 inline-block underline">
+              <Link href="/guia-tallas" className="text-xs text-gray-500 mt-1 inline-block underline">
                 Guía de tallas
-              </a>
+              </Link>
             </div>
           )}
 
