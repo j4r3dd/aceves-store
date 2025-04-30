@@ -14,7 +14,7 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/">
-          <img src="/logo.png" alt="Aceves logo" className="h-20 w-auto cursor-pointer" />
+          <img src="https://hnaptwk79kknvilx.public.blob.vercel-storage.com/logo/logo%20principal%20%281%29-R8ZSkLmTZwcRUnBkL6NFtSnwc3Huie.png" alt="Aceves logo" className="h-20 w-auto cursor-pointer" />
         </Link>
 
         {/* Desktop Menu */}
