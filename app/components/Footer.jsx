@@ -1,4 +1,5 @@
 // app/components/Footer.jsx
+import Link from 'next/link';
 export default function Footer() {
     return (
       <footer className="bg-[#092536] text-white text-sm">
@@ -25,7 +26,12 @@ export default function Footer() {
               <h5 className="font-semibold text-black mb-2">AYUDA</h5>
               <ul>
                 <li>Preguntas Frecuentes</li>
-                <li>Guía de tallas</li>
+
+                <li>
+                <Link href="/guia-tallas" className="hover:text-white transition-colors">
+                    Guía de tallas
+                </Link>
+                </li>
                 <li>Devoluciones</li>
                 <li>Garantías</li>
               </ul>

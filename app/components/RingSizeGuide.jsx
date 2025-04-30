@@ -91,9 +91,10 @@ export default function RingSizeGuide() {
                 placeholder="Ej. 1.75"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
+                className="text-black bg-white"
               />
               <select
-                className="border rounded p-2"
+                className="border rounded p-2 text-black bg-white"
                 value={inputType}
                 onChange={(e) => setInputType(e.target.value)}
               >
