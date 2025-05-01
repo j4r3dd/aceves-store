@@ -26,13 +26,16 @@ export default function Footer() {
               <h5 className="font-semibold text-black mb-2">AYUDA</h5>
               <ul>
                 <li>Preguntas Frecuentes</li>
-
                 <li>
                 <Link href="/guia-tallas" className="hover:text-white transition-colors">
                     Guía de tallas
                 </Link>
                 </li>
-                <li>Devoluciones</li>
+                <li>
+                <Link href="/devoluciones" className="hover:text-white transition-colors">
+                  Devoluciones
+                </Link>
+                </li>
                 <li>Garantías</li>
               </ul>
             </div>
@@ -41,7 +44,11 @@ export default function Footer() {
               <ul>
                 <li>Sobre nosotros</li>
                 <li>Joyería Responsable</li>
-                <li>Instrucciones de Cuidado</li>
+                <li>
+                <Link href="/guia-cuidados" className="hover:text-white transition-colors">
+                    Instrucciones de Cuidado
+                </Link>
+                </li>
                 <li>Protección de la marca</li>
               </ul>
             </div>
