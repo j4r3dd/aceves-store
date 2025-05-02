@@ -1,10 +1,19 @@
+// app/anillos/page.jsx 
 import Link from 'next/link';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import PageWrapper from '../components/PageWrapper'; 
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import PageWrapper from '../components/PageWrapper';
+
+export const metadata = {
+  title: 'Anillos | Aceves Joyería',
+  description: 'Descubre nuestra colección de anillos artesanales, cada pieza creada con alma para momentos que importan.',
+  keywords: ['anillos', 'joyería mexicana', 'anillos de promesa', 'anillos de pareja']
+};
 
 export default async function AnillosPage() {
-  const supabase = createServerComponentClient({ cookies });
+  // Use the correct pattern for cookies
+  const cookieStore = cookies();
+  const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
   let products = [];
   let error = null;
