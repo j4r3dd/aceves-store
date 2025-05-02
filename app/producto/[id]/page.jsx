@@ -9,11 +9,13 @@ export async function generateMetadata({ params }) {
   const cookieStore = cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
   
-  // Now we can safely use params.id
+  // Need to await params.id since it's now async
+  const id = await params.id;
+  
   const { data: product } = await supabase
     .from('products')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
     
   if (!product) {
@@ -112,10 +114,13 @@ export default async function ProductoPage({ params }) {
   const cookieStore = cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
   
+  // Need to await params.id
+  const id = await params.id;
+  
   const { data: product, error } = await supabase
     .from('products')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !product) {
@@ -128,7 +133,7 @@ export default async function ProductoPage({ params }) {
     .from('products')
     .select('*')
     .eq('category', product.category)
-    .neq('id', params.id)
+    .neq('id', id)
     .limit(4);
 
   return (

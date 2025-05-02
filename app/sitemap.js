@@ -19,23 +19,67 @@ export default async function sitemap() {
   const productUrls = products?.map(product => ({
     url: `${baseUrl}/producto/${product.id}`,
     lastModified: product.updated_at || new Date().toISOString(),
+    changeFrequency: 'weekly',
+    priority: 0.8
   })) || [];
   
   // Static pages
   const routes = [
-    '',
-    '/anillos',
-    '/collares',
-    '/promociones',
-    '/FAQ',
-    '/Nosotros',
-    '/guia-tallas',
-    '/guia-cuidados',
-    '/devoluciones'
-  ].map(route => ({
-    url: `${baseUrl}${route}`,
-    lastModified: new Date().toISOString(),
-  }));
+    {
+      url: `${baseUrl}`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'daily',
+      priority: 1.0
+    },
+    {
+      url: `${baseUrl}/anillos`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'weekly',
+      priority: 0.9
+    },
+    {
+      url: `${baseUrl}/collares`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'weekly',
+      priority: 0.9
+    },
+    {
+      url: `${baseUrl}/promociones`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'weekly',
+      priority: 0.8
+    },
+    {
+      url: `${baseUrl}/FAQ`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.7
+    },
+    {
+      url: `${baseUrl}/Nosotros`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.7
+    },
+    {
+      url: `${baseUrl}/guia-tallas`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.6
+    },
+    {
+      url: `${baseUrl}/guia-cuidados`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.6
+    },
+    {
+      url: `${baseUrl}/devoluciones`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: 'monthly',
+      priority: 0.5
+    }
+  ];
   
   return [...routes, ...productUrls];
 }

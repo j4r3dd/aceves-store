@@ -34,9 +34,9 @@ export const metadata = {
   }
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
   // Use this for canonical URL, but only on the client side
-  const headersList = headers();
+  const headersList = await headers();
   const path = headersList.get('x-pathname') || '';
   const canonicalUrl = `https://aceves-store.com${path}`;
 
