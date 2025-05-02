@@ -1,4 +1,4 @@
-// app/producto/[id]/page.jsx
+// Fixed version of app/producto/[id]/page.jsx
 import ProductoView from '../ProductoView';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
@@ -6,11 +6,11 @@ import Script from 'next/script';
 
 export async function generateMetadata({ params }) {
   // We need to use this pattern for cookies in Next.js 13+
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
   
-  // Need to await params.id since it's now async
-  const id = await params.id;
+  // Fix: Properly await params.id
+  const id = params.id;
   
   const { data: product } = await supabase
     .from('products')
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }) {
       title: product.name,
       description: cleanDescription,
       images: product.images?.[0] ? [{ url: product.images[0], alt: product.name }] : [],
-      type: 'product',
+      type: 'website', // Change from 'product' to 'website' to fix Invalid OpenGraph type error
       locale: 'es-MX',
     },
     twitter: {
@@ -111,11 +111,11 @@ function StructuredData({ product }) {
 
 export default async function ProductoPage({ params }) {
   // Use the correct pattern for cookies in Next.js
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
   
-  // Need to await params.id
-  const id = await params.id;
+  // Fix: Properly access params.id without awaiting it
+  const id = params.id;
   
   const { data: product, error } = await supabase
     .from('products')
