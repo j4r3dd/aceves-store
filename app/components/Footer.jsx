@@ -15,7 +15,9 @@ export default function Footer() {
           <div>
             <h4 className="font-bold mb-2">Devoluciones</h4>
             <button className="mt-2 px-3 py-1 border border-white rounded hover:bg-white hover:text-black">
+            <Link href="/devoluciones" className="hover:text-white transition-colors">
                 Haz clic aquí para ver las políticas de devolución
+            </Link>
             </button>
           </div>
         </div>
@@ -25,7 +27,11 @@ export default function Footer() {
             <div>
               <h5 className="font-semibold text-black mb-2">AYUDA</h5>
               <ul>
-                <li>Preguntas Frecuentes</li>
+                <li>
+                <Link href="/FAQ" className="hover:text-white transition-colors">
+                  Preguntas Frecuentes
+                </Link>
+                </li>
                 <li>
                 <Link href="/guia-tallas" className="hover:text-white transition-colors">
                     Guía de tallas
@@ -42,7 +48,11 @@ export default function Footer() {
             <div>
               <h5 className="font-semibold text-black mb-2">NOSOTROS</h5>
               <ul>
-                <li>Sobre nosotros</li>
+                <li>
+                <Link href="/Nosotros" className="hover:text-white transition-colors">
+                  Sobre nosotros
+                </Link>
+                </li>
                 <li>Joyería Responsable</li>
                 <li>
                 <Link href="/guia-cuidados" className="hover:text-white transition-colors">
