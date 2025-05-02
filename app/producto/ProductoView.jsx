@@ -6,6 +6,8 @@ import Slider from '../components/Slider';
 import { useCart } from '../../context/CartContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify'; 
+import ProductSchema from '../components/ProductSchema';
+import BreadcrumbSchema from '../components/BreadcrumbSchema';
 
 export default function ProductoView({ product, relatedProducts = [] }) {
   const { addToCart } = useCart();
@@ -36,6 +38,16 @@ export default function ProductoView({ product, relatedProducts = [] }) {
     // Scroll to top for better UX after adding to cart
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const breadcrumbs = [
+    { name: 'Inicio', url: 'https://www.acevesoficial.com/' },
+    { name: product.category === 'anillos' ? 'Anillos' : 
+             product.category === 'collares' ? 'Collares' : 
+             product.category, 
+      url: `https://www.acevesoficial.com/${product.category}` },
+    { name: product.name, url: `https://acevesoficial.com/producto/${product.id}` }
+  ];
+
 
   return (
     <PageWrapper>

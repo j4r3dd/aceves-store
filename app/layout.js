@@ -7,6 +7,7 @@ import { AuthProvider } from '../context/AuthContext';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { headers } from 'next/headers';
+import { OrganizationSchema } from "./components/OrganizationSchema"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,7 @@ export default async function RootLayout({ children }) {
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         <link rel="canonical" href={canonicalUrl} />
+        <OrganizationSchema />
       </head>
       <body className="antialiased">
         <AuthProvider>
