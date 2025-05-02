@@ -1,3 +1,4 @@
+// app/page.js
 import PageWrapper from './components/PageWrapper';
 import PromoBanner from './components/PromoBanner';
 import BannerSection from './components/BannerSection';

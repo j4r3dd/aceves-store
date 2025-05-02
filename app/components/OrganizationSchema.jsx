@@ -1,5 +1,5 @@
-// This can be a separate file or added directly to your layout.js
-function OrganizationSchema() {
+// Add export default or export
+export default function OrganizationSchema() {
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -12,7 +12,7 @@ function OrganizationSchema() {
     ],
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+52-443-687-5928", // Add your actual phone number here
+      "telephone": "+52-443-687-5928", 
       "contactType": "customer service",
       "availableLanguage": "Spanish"
     }

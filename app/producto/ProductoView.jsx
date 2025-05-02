@@ -7,7 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify'; 
 import ProductSchema from '../components/ProductSchema';
-import BreadcrumbSchema from '../components/BreadcrumbSchema';
+import BreadcrumbSchema from '../components/BreadcrumbsSchema';
 
 export default function ProductoView({ product, relatedProducts = [] }) {
   const { addToCart } = useCart();
@@ -276,6 +276,10 @@ export default function ProductoView({ product, relatedProducts = [] }) {
           </div>
         </div>
       </section>
+
+      {/* Add structured data components */}
+      <BreadcrumbSchema breadcrumbs={breadcrumbs} />
+      <ProductSchema product={product} />
     </PageWrapper>
   );
 }

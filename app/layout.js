@@ -7,7 +7,7 @@ import { AuthProvider } from '../context/AuthContext';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { headers } from 'next/headers';
-import { OrganizationSchema } from "./components/OrganizationSchema"
+import OrganizationSchema from "./components/OrganizationSchema";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +39,7 @@ export default async function RootLayout({ children }) {
   // Use this for canonical URL, but only on the client side
   const headersList = await headers();
   const path = headersList.get('x-pathname') || '';
-  const canonicalUrl = `https://aceves-store.com${path}`;
+  const canonicalUrl = `https://www.acevesoficial.com/${path}`;
 
   return (
     <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
