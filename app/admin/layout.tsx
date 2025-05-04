@@ -1,83 +1,83 @@
+// app/admin/layout.tsx (Refactored)
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
-export default function AdminLayout({ children }) {
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [loading, setLoading] = useState(true);
+// Login form component
+function AdminLoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
-  const pathname = usePathname();
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        console.log(`Checking session on page: ${pathname}`);
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Session check error:', error);
-          setIsAuthorized(false);
-          setLoading(false);
-          return;
-        }
-        
-        console.log('Session check result:', data.session ? 'Session found' : 'No session');
-        
-        if (data.session) {
-          setIsAuthorized(true);
-        } else {
-          setIsAuthorized(false);
-        }
-        
-        setLoading(false);
-      } catch (err) {
-        console.error('Error checking session:', err);
-        setLoading(false);
-      }
-    };
-    
-    checkSession();
-  }, [pathname]);
+  const { signIn, error: authError } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     
     try {
-      console.log('Attempting login with:', email);
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error('Login error:', error.message);
-        setError(error.message);
-      } else {
-        console.log('Login successful');
-        setIsAuthorized(true);
-      }
+      await signIn(email, password);
     } catch (err) {
-      console.error('Login exception:', err);
-      setError('An unexpected error occurred');
+      setError('Login failed. Please check your credentials.');
     }
   };
 
+  return (
+    <form onSubmit={handleLogin} className="flex flex-col w-full max-w-md">
+      {(error || authError) && <p className="text-red-500 mb-4">{error || authError}</p>}
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="border px-4 py-2 rounded mb-3"
+        required
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="border px-4 py-2 rounded mb-3"
+        required
+      />
+      <button
+        type="submit"
+        className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
+      >
+        Enter
+      </button>
+    </form>
+  );
+}
+
+export default function AdminLayout({ children }) {
+  const { isAuthenticated, loading, user, signOut } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // If not loading and not authenticated, redirect to login
+    if (!loading && !isAuthenticated) {
+      console.log('User not authenticated, redirecting to login page');
+      // Stay on the current page if it's the admin login page
+      if (pathname !== '/admin') {
+        router.push('/admin');
+      }
+    }
+  }, [isAuthenticated, loading, router, pathname]);
+
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      setIsAuthorized(false);
+      await signOut();
       router.push('/admin');
     } catch (err) {
       console.error('Logout error:', err);
     }
   };
 
+  // Show loading state while checking authentication
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -86,40 +86,17 @@ export default function AdminLayout({ children }) {
     );
   }
 
-  if (!isAuthorized) {
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white text-black">
         <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleLogin} className="flex flex-col w-full max-w-md">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border px-4 py-2 rounded mb-3"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border px-4 py-2 rounded mb-3"
-            required
-          />
-          <button
-            type="submit"
-            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-          >
-            Enter
-          </button>
-        </form>
+        <AdminLoginForm />
       </div>
     );
   }
 
-  // If authorized, render the children (admin pages) with admin header
+  // If authenticated, render the admin layout with children
   return (
     <div>
       {/* Admin header with logout button */}

@@ -1,17 +1,17 @@
-import { put } from '@vercel/blob';
+// app/api/upload/route.ts
 import { NextRequest } from 'next/server';
+import { put } from '@vercel/blob';
+import { withErrorHandling } from '../../../lib/api/middleware';
+import { handleError, successResponse, ApiException } from '../../../lib/api/utils';
 
-export async function POST(req: NextRequest) {
-  console.log('🧪 Upload request received');
-
+export const POST = withErrorHandling(async (req: NextRequest) => {
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const folder = formData.get('folder')?.toString() || '';
 
     if (!file) {
-      console.log('❌ No file uploaded');
-      return new Response('No file uploaded', { status: 400 });
+      throw new ApiException(400, 'No file uploaded');
     }
 
     // Add subfolder if provided
@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
 
     console.log('✅ File uploaded:', blob.url);
 
-    return Response.json({
+    return successResponse({
       url: blob.url,
       path: blob.pathname,
     });
-  } catch (err) {
-    console.error('❌ Upload failed:', err);
-    return new Response('Upload failed', { status: 500 });
+  } catch (error) {
+    console.error('❌ Upload failed:', error);
+    return handleError(error);
   }
-}
+});
