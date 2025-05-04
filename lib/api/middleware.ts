@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiException } from './utils';
 import { requireAuth, requireAdmin } from './handlers/auth';
+import { validateInput } from './validation';
 
 export type NextApiHandler = (
   req: NextRequest,
@@ -88,7 +89,7 @@ export const withValidation = <T>(
     }
 
     // Use the validation utility
-    const { validateInput } = require('./validation');
+
     try {
       const validatedData = validateInput<T>(body, schema);
       const validatedReq = req as NextRequest & { validatedData: T };
