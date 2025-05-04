@@ -1,6 +1,8 @@
-// lib/api/middleware.ts - Common API middleware functions
+// lib/api/middleware.ts - Updated with auth middleware
+
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiException } from './utils';
+import { requireAuth, requireAdmin } from './handlers/auth';
 
 export type NextApiHandler = (
   req: NextRequest,
@@ -31,9 +33,45 @@ export const withErrorHandling = (handler: NextApiHandler): NextApiHandler => {
 
 export const withAuth = (handler: NextApiHandler): NextApiHandler => {
   return async (req, context) => {
-    // Authentication logic would go here
-    // For now, just pass through
-    return handler(req, context);
+    try {
+      // This will throw if not authenticated
+      await requireAuth();
+      return handler(req, context);
+    } catch (error) {
+      if (error instanceof ApiException) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: error.status }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: 'Authentication error' },
+        { status: 401 }
+      );
+    }
+  };
+};
+
+export const withAdmin = (handler: NextApiHandler): NextApiHandler => {
+  return async (req, context) => {
+    try {
+      // This will throw if not admin
+      await requireAdmin();
+      return handler(req, context);
+    } catch (error) {
+      if (error instanceof ApiException) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: error.status }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      );
+    }
   };
 };
 
@@ -49,11 +87,26 @@ export const withValidation = <T>(
       throw new ApiException(400, 'Invalid JSON body');
     }
 
-    // Here you would validate with your schema
-    // For now we'll just pass through
-    const validatedReq = req as NextRequest & { validatedData: T };
-    validatedReq.validatedData = body as T;
-    
-    return handler(validatedReq, context);
+    // Use the validation utility
+    const { validateInput } = require('./validation');
+    try {
+      const validatedData = validateInput<T>(body, schema);
+      const validatedReq = req as NextRequest & { validatedData: T };
+      validatedReq.validatedData = validatedData;
+      
+      return handler(validatedReq, context);
+    } catch (error) {
+      if (error instanceof ApiException) {
+        return NextResponse.json(
+          { error: error.message, details: error.details },
+          { status: error.status }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: 'Validation error' },
+        { status: 400 }
+      );
+    }
   };
 };

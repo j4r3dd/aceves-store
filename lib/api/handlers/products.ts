@@ -1,6 +1,7 @@
-// lib/api/handlers/products.ts
-import { createServerSupabaseClient } from '../../../lib/supabase-server';
-import { ApiException } from '../../../lib/api/utils';
+// lib/api/handlers/products.ts - Updated to use the service
+
+import { SupabaseService } from '../services/supabase-service';
+import { ApiException } from '../utils';
 
 export interface Product {
   id: string;
@@ -12,56 +13,41 @@ export interface Product {
   [key: string]: any;
 }
 
-export const getAllProducts = async () => {
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.from('products').select('*');
+const service = SupabaseService.getInstance();
+const TABLE_NAME = 'products';
 
-  if (error) {
-    throw new ApiException(500, error.message, error);
-  }
-
-  return data;
+export const getAllProducts = async (): Promise<Product[]> => {
+  return service.getTable<Product>(TABLE_NAME);
 };
 
-export const getProductById = async (id: string) => {
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') {
-      throw new ApiException(404, `Product with ID ${id} not found`);
-    }
-    throw new ApiException(500, error.message, error);
-  }
-
-  return data;
+export const getProductsByCategory = async (category: string): Promise<Product[]> => {
+  return service.getTable<Product>(TABLE_NAME, {
+    filter: { category }
+  });
 };
 
-export const createOrUpdateProduct = async (product: Product) => {
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from('products')
-    .upsert(product, { onConflict: 'id' })
-    .select();
-
-  if (error) {
-    throw new ApiException(500, error.message, error);
-  }
-
-  return data;
+export const getProductById = async (id: string): Promise<Product> => {
+  return service.getRecord<Product>(TABLE_NAME, id);
 };
 
-export const deleteProduct = async (id: string) => {
-  const supabase = createServerSupabaseClient();
-  const { error } = await supabase.from('products').delete().eq('id', id);
-
-  if (error) {
-    throw new ApiException(500, error.message, error);
-  }
-
-  return true;
+export const createProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
+  const id = generateProductId(product.name); // Create a function to generate a unique ID
+  return service.createRecord<Product>(TABLE_NAME, { ...product, id });
 };
+
+export const updateProduct = async (id: string, product: Partial<Product>): Promise<Product> => {
+  return service.updateRecord<Product>(TABLE_NAME, id, product);
+};
+
+export const createOrUpdateProduct = async (product: Product): Promise<Product> => {
+  return service.upsertRecord<Product>(TABLE_NAME, product);
+};
+
+export const deleteProduct = async (id: string): Promise<boolean> => {
+  return service.deleteRecord(TABLE_NAME, id);
+};
+
+// Helper function to generate a URL-friendly ID based on the product name
+function generateProductId(name: string): string {
+  return `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}-${Date.now()}`;
+}

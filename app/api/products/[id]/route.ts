@@ -1,52 +1,49 @@
-// app/api/products/route.ts - Updated with shared handlers
-import { NextRequest, NextResponse } from 'next/server';
-import { withErrorHandling, withValidation } from '../../../../lib/api/middleware';
-import { handleError, successResponse } from '../../../../lib/api/utils';
+// app/api/products/[id]/route.ts - Updated for consistency
+
+import { NextRequest } from 'next/server';
 import { 
-  getAllProducts, 
-  createOrUpdateProduct, 
+  getProductById, 
+  updateProduct, 
   deleteProduct,
   Product 
 } from '../../../../lib/api/handlers/products';
+import { 
+  withErrorHandling, 
+  withValidation 
+} from '../../../../lib/api/middleware';
+import { 
+  successResponse 
+} from '../../../../lib/api/utils';
 
-export const GET = withErrorHandling(async () => {
-  try {
-    const products = await getAllProducts();
-    return successResponse(products);
-  } catch (error) {
-    return handleError(error);
-  }
+export const GET = withErrorHandling(async (
+  req: NextRequest, 
+  { params }: { params: { id: string } }
+) => {
+  const product = await getProductById(params.id);
+  return successResponse(product);
 });
 
-export const POST = withErrorHandling(
-  withValidation<Product>({
-    id: { type: 'string', required: true },
-    name: { type: 'string', required: true },
-    price: { type: 'number', required: true },
-    // Add other validations as needed
-  }, async (req) => {
-    try {
-      const product = req.validatedData;
-      const result = await createOrUpdateProduct(product);
-      return successResponse({ success: true, data: result });
-    } catch (error) {
-      return handleError(error);
-    }
+export const PATCH = withErrorHandling(
+  withValidation<Partial<Product>>({
+    name: { type: 'string' },
+    category: { type: 'string' },
+    price: { type: 'number' },
+    description: { type: 'string' },
+    images: { type: 'array' },
+  }, async (
+    req,
+    { params }: { params: { id: string } }
+  ) => {
+    const updates = req.validatedData;
+    const result = await updateProduct(params.id, updates);
+    return successResponse(result);
   })
 );
 
-export const DELETE = withErrorHandling(async (req: NextRequest) => {
-  try {
-    const url = new URL(req.url);
-    const id = url.searchParams.get('id');
-    
-    if (!id) {
-      return NextResponse.json({ error: 'Product ID is required' }, { status: 400 });
-    }
-
-    await deleteProduct(id);
-    return successResponse({ success: true });
-  } catch (error) {
-    return handleError(error);
-  }
+export const DELETE = withErrorHandling(async (
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) => {
+  await deleteProduct(params.id);
+  return successResponse({ success: true });
 });
