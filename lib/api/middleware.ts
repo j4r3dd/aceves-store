@@ -1,113 +1,57 @@
-// lib/api/middleware.ts - Updated with auth middleware
-
+// 2. SIMPLIFIED SERVER MIDDLEWARE (lib/api/middleware.ts)
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '../supabase-server';
 import { ApiException } from './utils';
-import { requireAuth, requireAdmin } from './handlers/auth';
-import { validateInput } from './validation';
 
-export type NextApiHandler = (
-  req: NextRequest,
-  context: { params?: Record<string, string | string[]> }
-) => Promise<NextResponse> | NextResponse;
-
-export const withErrorHandling = (handler: NextApiHandler): NextApiHandler => {
+export const withAuth = (handler) => {
   return async (req, context) => {
-    try {
-      return await handler(req, context);
-    } catch (error) {
-      console.error('API Error:', error);
-      
-      if (error instanceof ApiException) {
-        return NextResponse.json(
-          { error: error.message, details: error.details },
-          { status: error.status }
-        );
-      }
-      
+    const supabase = createServerSupabaseClient();
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error || !data.session) {
       return NextResponse.json(
-        { error: 'Internal server error' },
-        { status: 500 }
-      );
-    }
-  };
-};
-
-export const withAuth = (handler: NextApiHandler): NextApiHandler => {
-  return async (req, context) => {
-    try {
-      // This will throw if not authenticated
-      await requireAuth();
-      return handler(req, context);
-    } catch (error) {
-      if (error instanceof ApiException) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: error.status }
-        );
-      }
-      
-      return NextResponse.json(
-        { error: 'Authentication error' },
+        { error: 'Authentication required' },
         { status: 401 }
       );
     }
+    
+    // Add user to the request for handlers
+    req.user = data.session.user;
+    return handler(req, context);
   };
 };
 
-export const withAdmin = (handler: NextApiHandler): NextApiHandler => {
+export const withAdmin = (handler) => {
   return async (req, context) => {
-    try {
-      // This will throw if not admin
-      await requireAdmin();
-      return handler(req, context);
-    } catch (error) {
-      if (error instanceof ApiException) {
-        return NextResponse.json(
-          { error: error.message },
-          { status: error.status }
-        );
-      }
-      
+    const supabase = createServerSupabaseClient();
+    
+    // Verify session exists
+    const { data: sessionData, error: sessionError } = 
+      await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData.session) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+    
+    // Check admin role
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', sessionData.session.user.id)
+      .single();
+    
+    if (profileError || !profile || profile.role !== 'admin') {
       return NextResponse.json(
         { error: 'Admin access required' },
         { status: 403 }
       );
     }
-  };
-};
-
-export const withValidation = <T>(
-  schema: any,
-  handler: (req: NextRequest & { validatedData: T }, context: { params?: Record<string, string | string[]> }) => Promise<NextResponse> | NextResponse
-): NextApiHandler => {
-  return async (req, context) => {
-    let body;
-    try {
-      body = await req.json();
-    } catch (error) {
-      throw new ApiException(400, 'Invalid JSON body');
-    }
-
-    // Use the validation utility
-
-    try {
-      const validatedData = validateInput<T>(body, schema);
-      const validatedReq = req as NextRequest & { validatedData: T };
-      validatedReq.validatedData = validatedData;
-      
-      return handler(validatedReq, context);
-    } catch (error) {
-      if (error instanceof ApiException) {
-        return NextResponse.json(
-          { error: error.message, details: error.details },
-          { status: error.status }
-        );
-      }
-      
-      return NextResponse.json(
-        { error: 'Validation error' },
-        { status: 400 }
-      );
-    }
+    
+    // Add user to the request for handlers
+    req.user = sessionData.session.user;
+    return handler(req, context);
   };
 };

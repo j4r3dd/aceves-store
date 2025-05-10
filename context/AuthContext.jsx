@@ -1,10 +1,9 @@
-// context/AuthContext.jsx (Refactored)
+// 1. CONSOLIDATED AUTH CONTEXT (context/AuthContext.jsx)
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-// Create the context
 const AuthContext = createContext(undefined);
 
 export function AuthProvider({ children }) {
@@ -12,52 +11,69 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [profile, setProfile] = useState(null);
 
+  // Initialize auth state and set up listener
   useEffect(() => {
-    // Function to fetch and set session data
-    const checkSession = async () => {
+    const initializeAuth = async () => {
       try {
         setLoading(true);
-        setError(null);
         
-        // Get current session from Supabase
-        const { data, error } = await supabase.auth.getSession();
+        // Get initial session
+        const { data: sessionData } = await supabase.auth.getSession();
+        setSession(sessionData.session);
         
-        if (error) {
-          throw error;
+        if (sessionData.session?.user) {
+          setUser(sessionData.session.user);
+          
+          // Fetch user profile if authenticated
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', sessionData.session.user.id)
+            .single();
+            
+          setProfile(profileData);
         }
-        
-        // Set session and user data if available
-        setSession(data.session);
-        setUser(data.session?.user || null);
       } catch (err) {
-        console.error('Error checking session:', err);
+        console.error('Auth initialization error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
+
+    // Initial auth check
+    initializeAuth();
     
-    // Check session on initial load
-    checkSession();
-    
-    // Set up listener for auth state changes
+    // Set up auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log('Auth state changed:', event, newSession);
+        console.log('Auth state changed:', event);
         setSession(newSession);
         setUser(newSession?.user || null);
-        setLoading(false);
+        
+        // Update profile when auth state changes
+        if (newSession?.user) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', newSession.user.id)
+            .single();
+            
+          setProfile(data);
+        } else {
+          setProfile(null);
+        }
       }
     );
     
-    // Clean up listener on unmount
     return () => {
       authListener?.subscription?.unsubscribe();
     };
   }, []);
 
-  // Auth functions
+  // Consolidated auth functions
   const signIn = async (email, password) => {
     try {
       setLoading(true);
@@ -69,7 +85,6 @@ export function AuthProvider({ children }) {
       });
       
       if (error) throw error;
-      
       return data;
     } catch (err) {
       setError(err.message);
@@ -95,16 +110,21 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Enhanced auth context value
+  // Helper function to check if user has admin role
+  const isAdmin = () => {
+    return profile?.role === 'admin';
+  };
+
   const value = {
     user,
+    profile,
     session,
     loading,
     error,
     isAuthenticated: !!user,
+    isAdmin: isAdmin,
     signIn,
     signOut,
-    supabase, // Expose supabase client for advanced use cases
   };
 
   return (
@@ -114,7 +134,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Custom hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   
