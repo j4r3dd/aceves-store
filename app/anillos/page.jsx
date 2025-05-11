@@ -5,8 +5,8 @@ import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import PageWrapper from '../components/PageWrapper';
 
 export const metadata = {
-  title: 'Anillos | Aceves Joyería',
-  description: 'Descubre nuestra colección de anillos artesanales, cada pieza creada con alma para momentos que importan.',
+  title: 'Anillos de Promesa | Aceves Joyería',
+  description: 'Descubre nuestra colección de anillos de promesa, cada pieza creada con alma para momentos que importan.',
   keywords: ['anillos', 'joyería mexicana', 'anillos de promesa', 'anillos de pareja']
 };
 

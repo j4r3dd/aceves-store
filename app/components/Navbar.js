@@ -19,7 +19,7 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <ul className="hidden md:flex gap-6 text-base font-medium tracking-wide">
-          <li><Link href="/anillos" className="hover:text-[#759bbb] transition-colors">Anillos</Link></li>
+          <li><Link href="/anillos" className="hover:text-[#759bbb] transition-colors">Anillos de Promesa</Link></li>
           <li><Link href="/collares" className="hover:text-[#759bbb] transition-colors">Collares</Link></li>
           <li><Link href="/promociones" className="hover:text-[#759bbb] transition-colors">Promociones</Link></li>
         </ul>
