@@ -1,5 +1,12 @@
-// lib/api/utils.ts - Shared API utilities
+// lib/api/utils.ts - Add cn utility function for merging classNames
 import { NextResponse } from 'next/server';
+import { clsx } from 'clsx';
+import type { ClassValue } from 'clsx';
+
+// Add the cn utility function for merging classnames
+export function cn(...inputs: ClassValue[]) {
+  return clsx(inputs);
+}
 
 export type ApiError = {
   status: number;
