@@ -9,8 +9,9 @@ export async function generateMetadata({ params }) {
   const cookieStore = await cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
   
-  // Fix: Properly await params.id
-  const id = params.id;
+  // Fix: Properly await params first
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   
   const { data: product } = await supabase
     .from('products')
@@ -114,8 +115,9 @@ export default async function ProductoPage({ params }) {
   const cookieStore = await cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
   
-  // Fix: Properly access params.id without awaiting it
-  const id = params.id;
+  // Fix: Properly await params first
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   
   const { data: product, error } = await supabase
     .from('products')
