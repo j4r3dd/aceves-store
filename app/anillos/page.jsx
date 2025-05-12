@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import PageWrapper from '../components/PageWrapper';
-import AnillosInfo from '../components/AnillosInfo';
+import ExpandableSection from '../components/ExpandableSection';
 import Script from 'next/script';
+
 
 export const metadata = {
   title: 'Anillos de Promesa | Joyería Artesanal para Parejas | Aceves',
@@ -170,9 +171,25 @@ export default async function AnillosPage() {
             
           )}
 
-          {/* Expandable Section - Added before FAQ */}
-          <AnillosInfo />
-          
+          <ExpandableSection 
+                title="Información Detallada sobre Anillos de Promesa"
+                className="mt-8"
+              >
+                <div className="text-black leading-relaxed space-y-4">
+                  <p>
+                    Descubre nuestra colección de <strong>anillos de promesa</strong> únicos, creados para celebrar 
+                    el amor y compromiso entre parejas. Cada pieza está diseñada artesanalmente con materiales 
+                    de alta calidad como acero inoxidable y plata, resistentes al uso diario y pensados para durar, 
+                    como tu historia de amor.
+                  </p>
+                  <p>
+                    En Aceves entendemos que regalar un <strong>anillo de promesa</strong> significa decir "te amo" sin 
+                    palabras. Es un símbolo de conexión y compromiso. Explora nuestra colección y encuentra 
+                    el anillo perfecto para sellar tu promesa de amor.
+                  </p>
+                </div>
+              </ExpandableSection>
+
           {/* Sección de FAQ para usuarios y SEO */}
           <section className="mt-16 bg-white rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-black mb-6">Preguntas Frecuentes sobre Anillos de Promesa</h2>
