@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import PageWrapper from '../components/PageWrapper';
+import AnillosInfo from '../components/AnillosInfo';
 import Script from 'next/script';
 
 export const metadata = {
@@ -101,6 +102,8 @@ export default async function AnillosPage() {
     }
   }
 
+  <AnillosInfo />
+
   return (
     <PageWrapper>
       <FAQSchema />
@@ -120,20 +123,6 @@ export default async function AnillosPage() {
 
       <h1 className="text-3xl font-bold text-primary mb-4">Anillos de Promesa </h1>
       
-      {/* Introducción SEO-friendly */}
-      <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
-        <p className="text-gray-700 mb-4">
-          Descubre nuestra colección de <strong>anillos de promesa</strong> únicos, creados para celebrar 
-          el amor y compromiso entre parejas. Cada pieza está diseñada artesanalmente con materiales 
-          de alta calidad como acero inoxidable y plata, resistentes al uso diario y pensados para durar, 
-          como tu historia de amor.
-        </p>
-        <p className="text-gray-700">
-          En Aceves entendemos que regalar un <strong>anillo de promesa</strong> significa decir "te amo" sin 
-          palabras. Es un símbolo de conexión y compromiso. Explora nuestra colección y encuentra 
-          el anillo perfecto para sellar tu promesa de amor.
-        </p>
-      </div>
 
       <h2 className="text-2xl font-semibold text-primary mb-4">Envío Gratis en Anillos de Promesa</h2>
 
@@ -227,7 +216,7 @@ export default async function AnillosPage() {
               </div>
             </div>
           </section>
-          
+
           {/* CTA final */}
           <div className="mt-12 text-center">
             <h2 className="text-2xl font-bold text-primary mb-4">Encuentra el Anillo de Promesa Perfecto</h2>
@@ -244,6 +233,7 @@ export default async function AnillosPage() {
           </div>
         </>
       )}
+      
     </PageWrapper>
   );
 }
