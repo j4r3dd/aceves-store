@@ -22,8 +22,8 @@ const geistMono = Geist_Mono({
 export const metadata = {
 
     icons: {
-    icon: '/favicon.ico', // or whatever your favicon filename is
-    apple: '/apple-icon.png', // optional
+    icon: '/app/favicon.ico', // or whatever your favicon filename is
+    apple: '/app/apple-icon.png', // optional
     },
 
   title: {
