@@ -1,3 +1,4 @@
+//C:\Users\j4r3d\Programacion\aceves-store\app\components\ui\tabs.jsx
 'use client';
 
 import * as React from 'react';
