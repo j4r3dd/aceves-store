@@ -16,7 +16,7 @@ export default function ExpandableSection({
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full p-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
       >
-        <h2 className="text-xl font-semibold text-primary">{title}</h2>
+        <h2 className="text-xl font-semibold text-black">{title}</h2>
         <span className="text-2xl text-primary transform transition-transform duration-200">
           {isExpanded ? '−' : '+'}
         </span>

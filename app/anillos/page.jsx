@@ -102,7 +102,6 @@ export default async function AnillosPage() {
     }
   }
 
-  <AnillosInfo />
 
   return (
     <PageWrapper>
@@ -121,10 +120,7 @@ export default async function AnillosPage() {
         </ol>
       </nav>
 
-      <h1 className="text-3xl font-bold text-primary mb-4">Anillos de Promesa </h1>
-      
-
-      <h2 className="text-2xl font-semibold text-primary mb-4">Envío Gratis en Anillos de Promesa</h2>
+      <h1 className="text-2xl font-bold text-[#092536] mb-4">Anillos de Promesa </h1>
 
       {error && products.length === 0 ? (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -171,15 +167,19 @@ export default async function AnillosPage() {
                 </Link>
               ))}
             </div>
+            
           )}
+
+          {/* Expandable Section - Added before FAQ */}
+          <AnillosInfo />
           
           {/* Sección de FAQ para usuarios y SEO */}
           <section className="mt-16 bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-2xl font-semibold text-primary mb-6">Preguntas Frecuentes sobre Anillos de Promesa</h2>
+            <h2 className="text-xl font-semibold text-black mb-6">Preguntas Frecuentes sobre Anillos de Promesa</h2>
             
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-medium text-primary">¿Qué significa regalar un anillo de promesa?</h3>
+                <h3 className="text-lg font-medium text-black">¿Qué significa regalar un anillo de promesa?</h3>
                 <p className="mt-2 text-gray-700">
                   Regalar un anillo de promesa es una manera de demostrar compromiso y amor. Representa una promesa 
                   entre parejas, ya sea de fidelidad, amor eterno o un futuro compromiso de matrimonio. En Aceves 
@@ -188,7 +188,7 @@ export default async function AnillosPage() {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium text-primary">¿En qué dedo se usa el anillo de promesa?</h3>
+                <h3 className="text-lg font-medium text-black">¿En qué dedo se usa el anillo de promesa?</h3>
                 <p className="mt-2 text-gray-700">
                   Tradicionalmente, el anillo de promesa se usa en el dedo anular de la mano derecha, reservando 
                   el dedo anular izquierdo para el anillo de compromiso y matrimonio. Sin embargo, puedes llevarlo 
@@ -197,7 +197,7 @@ export default async function AnillosPage() {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium text-primary">¿Cuál es la diferencia entre anillo de promesa y compromiso?</h3>
+                <h3 className="text-lg font-medium text-black">¿Cuál es la diferencia entre anillo de promesa y compromiso?</h3>
                 <p className="mt-2 text-gray-700">
                   Un anillo de promesa representa un compromiso personal entre parejas, mientras que un anillo de 
                   compromiso simboliza específicamente la intención de matrimonio futuro. Los anillos de promesa 
@@ -207,7 +207,7 @@ export default async function AnillosPage() {
               </div>
               
               <div>
-                <h3 className="text-lg font-medium text-primary">¿De qué materiales están hechos los anillos de promesa?</h3>
+                <h3 className="text-lg font-medium text-black">¿De qué materiales están hechos los anillos de promesa?</h3>
                 <p className="mt-2 text-gray-700">
                   En Aceves, nuestros anillos de promesa están elaborados con materiales de alta calidad como acero 
                   inoxidable y plata, resistentes al uso diario. Cada pieza está diseñada artesanalmente para que sea 
@@ -219,7 +219,7 @@ export default async function AnillosPage() {
 
           {/* CTA final */}
           <div className="mt-12 text-center">
-            <h2 className="text-2xl font-bold text-primary mb-4">Encuentra el Anillo de Promesa Perfecto</h2>
+            <h2 className="text-xl font-bold text-primary mb-4">Encuentra el Anillo de Promesa Perfecto</h2>
             <p className="text-lg text-gray-700 mb-6">
               Explora nuestra colección de anillos de promesa artesanales y encuentra la pieza ideal para 
               expresar tu amor. Envío gratis en compras mayores a $999 MXN.

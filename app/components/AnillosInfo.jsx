@@ -6,7 +6,7 @@ export default function AnillosInfo() {
       title="Información Detallada sobre Anillos de Promesa"
       className="mt-8"
     >
-      <div className="text-gray-700 leading-relaxed space-y-4">
+      <div className="text-black leading-relaxed space-y-4">
         <p>
           Descubre nuestra colección de <strong>anillos de promesa</strong> únicos, creados para celebrar 
           el amor y compromiso entre parejas. Cada pieza está diseñada artesanalmente con materiales 
