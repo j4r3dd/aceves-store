@@ -66,7 +66,7 @@ export default function Navbar() {
             className="md:hidden px-6 pb-4"
           >
             <ul className="flex flex-col gap-4 text-base font-medium tracking-wide">
-              <li><Link href="/anillos" className="hover:text-[#092536] transition-colors">Anillos</Link></li>
+              <li><Link href="/anillos" className="hover:text-[#092536] transition-colors">Anillos de Promesa</Link></li>
               <li><Link href="/collares" className="hover:text-[#092536] transition-colors">Collares</Link></li>
               <li><Link href="/promociones" className="hover:text-[#092536] transition-colors">Promociones</Link></li>
             </ul>
