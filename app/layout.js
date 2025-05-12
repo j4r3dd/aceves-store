@@ -20,6 +20,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+
+    icons: {
+    icon: '/favicon.ico', // or whatever your favicon filename is
+    apple: '/apple-icon.png', // optional
+    },
+
   title: {
     default: "Aceves Joyería | Anillos y Collares con Alma",
     template: "%s | Aceves Joyería"
