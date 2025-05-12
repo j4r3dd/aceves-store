@@ -162,7 +162,7 @@ export default function ProductoView({ product, relatedProducts = [] }) {
             <dl className="mt-2 text-sm text-gray-600 space-y-1">
               <div className="flex gap-2">
                 <dt className="font-medium">Material:</dt>
-                <dd>Acero inoxidable / Plata</dd>
+                <dd>Plata</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="font-medium">Categoría:</dt>

@@ -7,8 +7,8 @@ import Script from 'next/script';
 
 export const metadata = {
   title: 'Anillos de Promesa | Joyería Artesanal para Parejas | Aceves',
-  description: 'Descubre nuestra colección de anillos de promesa artesanales para parejas. Acero inoxidable y plata de alta calidad, envío gratis en compras +$999. ¡Expresa tu amor con Aceves!',
-  keywords: ['anillos de promesa', 'anillos para parejas', 'joyería mexicana', 'anillos de pareja', 'anillos de promesa plata', 'anillos de promesa acero inoxidable'],
+  description: 'Descubre nuestra colección de anillos de promesa artesanales para parejas. Plata de alta calidad, envío gratis en compras +$999. ¡Expresa tu amor con Aceves!',
+  keywords: ['anillos de promesa', 'anillos para parejas', 'joyería mexicana', 'anillos de pareja', 'anillos de promesa plata', 'anillos de promesa amor'],
   openGraph: {
     title: 'Anillos de Promesa | Joyería Artesanal para Parejas',
     description: 'Descubre nuestra colección de anillos de promesa artesanales. Envío gratis en compras desde $999. ¡Regala amor con Aceves!',
