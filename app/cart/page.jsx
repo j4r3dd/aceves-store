@@ -3,6 +3,7 @@
 import { useCart } from '../../context/CartContext';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { tiktokPixel } from '../../lib/tiktokPixel';
 
 export default function CartPage() {
   const { 
@@ -46,6 +47,10 @@ export default function CartPage() {
   const isQuantityAtMax = (item) => {
     const availableStock = getStockForItem(item);
     return item.quantity >= availableStock;
+  };
+
+  const handleCheckoutClick = () => {
+    tiktokPixel.trackInitiateCheckout(cart);
   };
 
   return (
@@ -145,7 +150,9 @@ export default function CartPage() {
           </div>
 
           <Link href="/checkout">
-            <button className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-900">
+            <button 
+              onClick={handleCheckoutClick}
+              className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-900">
               Proceder al pago
             </button>
           </Link>

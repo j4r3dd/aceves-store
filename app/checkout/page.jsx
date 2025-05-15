@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-toastify';
+import { tiktokPixel } from '../../lib/tiktokPixel'; // Add this import
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
@@ -133,6 +134,10 @@ export default function CheckoutPage() {
           },
           onApprove: async (data, actions) => {
             try {
+
+              // Track AddPaymentInfo event when PayPal is approved
+              tiktokPixel.trackAddPaymentInfo(cart);
+
               // Capture the payment
               const order = await actions.order.capture();
               console.log('💰 Payment captured:', order);
@@ -146,6 +151,14 @@ export default function CheckoutPage() {
               console.log('💾 Saving order to database...');
               const savedOrder = await saveOrderToDatabase(form, order.id);
               console.log('✅ Order saved successfully');
+
+              // 3. Track Purchase event
+              tiktokPixel.trackPurchase({
+                email: form.email,
+                orderId: order.id,
+                items: cart,
+                total: total
+              });
 
               // 3. Send to Google Sheets (existing flow)
               const productos = cart
