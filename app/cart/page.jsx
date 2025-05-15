@@ -49,8 +49,8 @@ export default function CartPage() {
     return item.quantity >= availableStock;
   };
 
-  const handleCheckoutClick = () => {
-    tiktokPixel.trackInitiateCheckout(cart);
+  const handleCheckoutClick = async () => {
+  await tiktokPixel.trackInitiateCheckoutEnhanced(cart);
   };
 
   return (

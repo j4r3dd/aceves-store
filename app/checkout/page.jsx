@@ -136,7 +136,11 @@ export default function CheckoutPage() {
             try {
 
               // Track AddPaymentInfo event when PayPal is approved
-              tiktokPixel.trackAddPaymentInfo(cart);
+
+              await tiktokPixel.trackAddPaymentInfoEnhanced(cart, {
+              email: form.email,
+              phone: form.telefono
+              });
 
               // Capture the payment
               const order = await actions.order.capture();
@@ -153,13 +157,17 @@ export default function CheckoutPage() {
               console.log('✅ Order saved successfully');
 
               // 3. Track Purchase event
-              tiktokPixel.trackPurchase({
+              await tiktokPixel.trackPurchaseEnhanced({
                 email: form.email,
                 phone: form.telefono,
                 orderId: order.id,
                 items: cart,
                 total: total
+              }, {
+                email: form.email,
+                phone: form.telefono
               });
+
 
               // 3. Send to Google Sheets (existing flow)
               const productos = cart

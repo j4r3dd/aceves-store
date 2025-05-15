@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify'; 
 import ProductSchema from '../components/ProductSchema';
 import BreadcrumbSchema from '../components/BreadcrumbsSchema';
+import { tiktokPixel } from '../../lib/tiktokPixel'; // Add this import
 
 export default function ProductoView({ product, relatedProducts = [] }) {
   const { addToCart } = useCart();
@@ -24,11 +25,18 @@ export default function ProductoView({ product, relatedProducts = [] }) {
     }
   }, [product]);
 
+  // Track ViewContent when product loads
+  useEffect(() => {
+    tiktokPixel.trackViewContentEnhanced(product);
+  }, [product]);
+
   const handleAdd = () => {
     if (product.sizes && Array.isArray(product.sizes) && !selectedSize) {
       toast.error('Por favor selecciona una talla');
       return;
     }
+
+    tiktokPixel.trackAddToCart(product, 1);
 
     addToCart({
       ...product,
