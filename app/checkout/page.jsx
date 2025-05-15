@@ -24,120 +24,34 @@ export default function CheckoutPage() {
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const paypalRef = useRef();
 
-  // 🔧 FIXED: Proper stock update function
+  // 🔧 NEW: Use API route for stock updates (bypasses RLS with service key)
   const updateStock = async (cartItems) => {
-    console.log('🔄 Starting stock update for:', cartItems);
+    console.log('🔄 Starting stock update via API for:', cartItems);
     
     try {
-      for (const item of cartItems) {
-        console.log(`\n📦 Processing item: ${item.name}`);
-        console.log(`🔢 Quantity to subtract: ${item.quantity}`);
-        console.log(`📏 Selected size: ${item.selectedSize}`);
-
-        // Check if the item has a selected size (anillos)
-        if (item.selectedSize) {
-          // Get current product data from database
-          const { data: product, error: fetchError } = await supabase
-            .from('products')
-            .select('sizes')
-            .eq('id', item.id)
-            .single();
-
-          if (fetchError) {
-            console.error('❌ Error fetching product:', fetchError);
-            throw new Error(`No se pudo obtener el producto ${item.name}: ${fetchError.message}`);
-          }
-
-          console.log('📋 Current product data:', product);
-
-          // Check if product has valid sizes array
-          if (!product.sizes || !Array.isArray(product.sizes)) {
-            throw new Error(`El producto ${item.name} no tiene tallas configuradas correctamente`);
-          }
-
-          console.log('🏷️ Current sizes:', product.sizes);
-
-          // Update the specific size stock - ENSURE NUMBERS
-          const updatedSizes = product.sizes.map(sizeObj => {
-            if (sizeObj.size === item.selectedSize) {
-              // 🔧 FIX: Ensure stock is treated as a number
-              const currentStock = parseInt(sizeObj.stock);
-              const quantityToSubtract = parseInt(item.quantity);
-              const newStock = Math.max(0, currentStock - quantityToSubtract);
-              
-              console.log(`📊 Size ${sizeObj.size}: ${currentStock} -> ${newStock}`);
-              
-              // Verify we have valid numbers
-              if (isNaN(currentStock) || isNaN(quantityToSubtract)) {
-                throw new Error(`Stock inválido para la talla ${item.selectedSize} del producto ${item.name}`);
-              }
-              
-              return {
-                ...sizeObj,
-                stock: newStock  // This will be a number
-              };
-            }
-            return sizeObj;
-          });
-
-          console.log('🔄 Updated sizes:', updatedSizes);
-
-          // Update the product in database
-          const { error: updateError } = await supabase
-            .from('products')
-            .update({ sizes: updatedSizes })
-            .eq('id', item.id);
-
-          if (updateError) {
-            console.error('❌ Error updating product stock:', updateError);
-            throw new Error(`No se pudo actualizar el stock del producto ${item.name}: ${updateError.message}`);
-          }
-
-          console.log(`✅ Successfully updated stock for ${item.name} size ${item.selectedSize}`);
-          
-        } else {
-          // For products without sizes (collares, etc.)
-          const { data: product, error: fetchError } = await supabase
-            .from('products')
-            .select('stock')
-            .eq('id', item.id)
-            .single();
-
-          if (fetchError) {
-            console.error('❌ Error fetching product:', fetchError);
-            throw new Error(`No se pudo obtener el producto ${item.name}: ${fetchError.message}`);
-          }
-
-          // 🔧 FIX: Ensure stock is treated as a number
-          const currentStock = parseInt(product.stock || 0);
-          const quantityToSubtract = parseInt(item.quantity);
-          const newStock = Math.max(0, currentStock - quantityToSubtract);
-          
-          if (isNaN(currentStock) || isNaN(quantityToSubtract)) {
-            throw new Error(`Stock inválido para el producto ${item.name}`);
-          }
-
-          console.log(`📊 Product ${item.name}: ${currentStock} -> ${newStock}`);
-
-          const { error: updateError } = await supabase
-            .from('products')
-            .update({ stock: newStock })
-            .eq('id', item.id);
-
-          if (updateError) {
-            console.error('❌ Error updating general stock:', updateError);
-            throw new Error(`No se pudo actualizar el stock del producto ${item.name}: ${updateError.message}`);
-          }
-
-          console.log(`✅ Successfully updated general stock for ${item.name}`);
-        }
+      const response = await fetch('/api/update-stock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cartItems }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update stock');
       }
-
-      console.log('🎉 All stock updates completed successfully');
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Stock update was not successful');
+      }
+      
+      console.log('✅ Stock updated successfully via API');
       return true;
     } catch (error) {
-      console.error('💥 Stock update failed:', error);
-      throw error; // Re-throw to be handled by onApprove
+      console.error('❌ API stock update failed:', error);
+      throw error;
     }
   };
 
