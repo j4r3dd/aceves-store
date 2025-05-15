@@ -85,9 +85,23 @@ export function CartProvider({ children }) {
     toast.error('Producto eliminado del carrito ❌');
   };
 
+  // NEW: Clear cart function
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem('cart'); // Also clear from localStorage
+    toast.info('Carrito vaciado 🛒');
+  };
+
   return (
     <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, increaseQuantity, decreaseQuantity }}
+      value={{ 
+        cart, 
+        addToCart, 
+        removeFromCart, 
+        increaseQuantity, 
+        decreaseQuantity,
+        clearCart // Add clearCart to the context value
+      }}
     >
       {children}
     </CartContext.Provider>

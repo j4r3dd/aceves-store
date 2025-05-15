@@ -3,9 +3,11 @@
 import { useCart } from '../../context/CartContext';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { supabase } from '../../lib/supabase';
+import { toast } from 'react-toastify';
 
 export default function CheckoutPage() {
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart(); // Add clearCart function
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const [form, setForm] = useState({
@@ -21,6 +23,106 @@ export default function CheckoutPage() {
   const [showPayPal, setShowPayPal] = useState(false);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const paypalRef = useRef();
+
+  // Function to update stock in database
+  const updateStock = async (cartItems) => {
+    try {
+      for (const item of cartItems) {
+        if (item.sizes && item.selectedSize) {
+          // For products with sizes, get current product data
+          const { data: product, error: fetchError } = await supabase
+            .from('products')
+            .select('sizes')
+            .eq('id', item.id)
+            .single();
+
+          if (fetchError) {
+            console.error('Error fetching product:', fetchError);
+            throw new Error(`No se pudo actualizar el stock del producto ${item.name}`);
+          }
+
+          // Update the specific size stock
+          const updatedSizes = product.sizes.map(sizeObj => {
+            if (sizeObj.size === item.selectedSize) {
+              return {
+                ...sizeObj,
+                stock: Math.max(0, sizeObj.stock - item.quantity)
+              };
+            }
+            return sizeObj;
+          });
+
+          // Update the product in database
+          const { error: updateError } = await supabase
+            .from('products')
+            .update({ sizes: updatedSizes })
+            .eq('id', item.id);
+
+          if (updateError) {
+            console.error('Error updating product stock:', updateError);
+            throw new Error(`No se pudo actualizar el stock del producto ${item.name}`);
+          }
+        } else {
+          // For products without sizes (if you have them)
+          // You might want to handle this case differently
+          console.log('Product without sizes:', item.name);
+        }
+      }
+      
+      console.log('✅ Stock actualizado exitosamente');
+      return true;
+    } catch (error) {
+      console.error('❌ Error al actualizar stock:', error);
+      toast.error(error.message);
+      return false;
+    }
+  };
+
+  // Function to save order to database
+  const saveOrderToDatabase = async (orderData, paypalOrderId) => {
+    try {
+      const orderInsert = {
+        paypal_order_id: paypalOrderId,
+        customer_name: orderData.nombre,
+        customer_email: orderData.email,
+        customer_phone: orderData.telefono,
+        shipping_address: {
+          calle: orderData.calle,
+          colonia: orderData.colonia,
+          ciudad: orderData.ciudad,
+          cp: orderData.cp
+        },
+        items: cart.map(item => ({
+          product_id: item.id,
+          product_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          selected_size: item.selectedSize || null
+        })),
+        total_amount: total,
+        status: 'paid',
+        created_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('orders')
+        .insert([orderInsert])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving order to database:', error);
+        throw new Error('No se pudo guardar la orden en la base de datos');
+      }
+
+      console.log('✅ Orden guardada en la base de datos:', data);
+      return data;
+    } catch (error) {
+      console.error('❌ Error al guardar orden:', error);
+      toast.error(error.message);
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (!showPayPal || paypalLoaded) return;
@@ -51,61 +153,82 @@ export default function CheckoutPage() {
             });
           },
           onApprove: async (data, actions) => {
-            // IMPORTANTE: Retornar la promesa de capture
-            const order = await actions.order.capture();
-
-            // Formateamos los productos
-            const productos = cart
-              .map((item) => `${item.quantity}x ${item.name}`)
-              .join(', ');
-
-            const payload = {
-              nombre: form.nombre,
-              calle: form.calle,
-              colonia: form.colonia,
-              ciudad: form.ciudad,
-              cp: form.cp,
-              email: form.email,
-              telefono: form.telefono,
-              productos,
-              total: total.toFixed(2),
-            };
-
-            // Envío a Google Sheets
             try {
-              const response = await fetch(
-                process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL,
-                {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                  },
-                  body: new URLSearchParams(payload),
-                }
-              );
+              // Capture the payment
+              const order = await actions.order.capture();
+              console.log('💰 Pago capturado:', order);
 
-              const result = await response.text();
-              console.log('Respuesta del servidor:', result);
-
-              if (result === 'OK') {
-                alert(`✅ Pago completado por ${form.nombre} 🎉`);
-                console.log('🧾 Pedido enviado a Google Sheets.');
-                window.location.href = `/gracias?nombre=${encodeURIComponent(form.nombre)}&orderId=${order.id}`;
-
-              } else {
-                throw new Error('La respuesta del servidor no fue OK');
+              // 1. Update stock in database
+              const stockUpdated = await updateStock(cart);
+              if (!stockUpdated) {
+                throw new Error('No se pudo actualizar el inventario');
               }
-            } catch (err) {
-              console.error('❌ Error al enviar a Google Sheets:', err);
-              alert('El pago fue exitoso, pero no se pudo guardar el pedido.');
-            }
 
-            // MUY IMPORTANTE: retornar la orden para que PayPal cierre el popup
-            return order;
+              // 2. Save order to database
+              const savedOrder = await saveOrderToDatabase(form, order.id);
+              if (!savedOrder) {
+                throw new Error('No se pudo guardar la orden');
+              }
+
+              // 3. Send to Google Sheets (your existing flow)
+              const productos = cart
+                .map((item) => `${item.quantity}x ${item.name}${item.selectedSize ? ` (Talla: ${item.selectedSize})` : ''}`)
+                .join(', ');
+
+              const payload = {
+                nombre: form.nombre,
+                calle: form.calle,
+                colonia: form.colonia,
+                ciudad: form.ciudad,
+                cp: form.cp,
+                email: form.email,
+                telefono: form.telefono,
+                productos,
+                total: total.toFixed(2),
+                paypal_order_id: order.id
+              };
+
+              try {
+                const response = await fetch(
+                  process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(payload),
+                  }
+                );
+
+                const result = await response.text();
+                console.log('📊 Respuesta de Google Sheets:', result);
+
+                if (result !== 'OK') {
+                  console.warn('⚠️ Google Sheets no respondió OK, pero la orden se procesó correctamente');
+                }
+              } catch (gsheetError) {
+                console.error('❌ Error al enviar a Google Sheets:', gsheetError);
+                // Don't throw here, just log - Google Sheets failure shouldn't fail the order
+              }
+
+              // 4. Clear cart and redirect
+              clearCart();
+              toast.success(`✅ Pago completado por ${form.nombre} 🎉`);
+              
+              setTimeout(() => {
+                window.location.href = `/gracias?nombre=${encodeURIComponent(form.nombre)}&orderId=${order.id}`;
+              }, 1000);
+
+              return order;
+            } catch (error) {
+              console.error('❌ Error en el proceso de pago:', error);
+              toast.error(error.message || 'Error al procesar el pago');
+              throw error;
+            }
           },
           onError: (err) => {
             console.error('❌ Error en PayPal:', err);
-            alert('Hubo un error al procesar el pago.');
+            toast.error('Hubo un error al procesar el pago.');
           },
         }).render(paypalRef.current);
       }
@@ -123,11 +246,11 @@ export default function CheckoutPage() {
     const { nombre, calle, colonia, ciudad, cp, email, telefono } = form;
 
     if (!nombre || !calle || !colonia || !ciudad || !cp || !email || !telefono) {
-      alert('Por favor completa todos los campos.');
+      toast.error('Por favor completa todos los campos.');
       return;
     }
 
-    setShowPayPal(true); // load buttons
+    setShowPayPal(true);
   };
 
   return (
@@ -172,9 +295,11 @@ export default function CheckoutPage() {
           <div className="border-t pt-4">
             <h2 className="text-lg font-semibold mb-2">Resumen del Pedido</h2>
             {cart.map((item, idx) => (
-              <p key={idx} className="text-sm text-gray-700">
-                {item.quantity} x {item.name} — ${item.price * item.quantity} MXN
-              </p>
+              <div key={idx} className="text-sm text-gray-700 mb-1">
+                {item.quantity} x {item.name}
+                {item.selectedSize && ` (Talla: ${item.selectedSize})`}
+                {' — '}${(item.price * item.quantity).toLocaleString()} MXN
+              </div>
             ))}
             <p className="mt-2 font-bold">Total: ${total.toLocaleString()} MXN</p>
           </div>
