@@ -155,6 +155,7 @@ export default function CheckoutPage() {
               // 3. Track Purchase event
               tiktokPixel.trackPurchase({
                 email: form.email,
+                phone: form.telefono,
                 orderId: order.id,
                 items: cart,
                 total: total
