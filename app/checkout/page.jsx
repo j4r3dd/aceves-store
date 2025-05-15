@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { toast } from 'react-toastify';
 
 export default function CheckoutPage() {
-  const { cart, clearCart } = useCart(); // Add clearCart function
+  const { cart, clearCart } = useCart();
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const [form, setForm] = useState({
@@ -24,63 +24,95 @@ export default function CheckoutPage() {
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const paypalRef = useRef();
 
-  // Function to update stock in database
+ // ✅ FUNCIÓN ACTUALIZADA: Actualizar el stock al comprar
   const updateStock = async (cartItems) => {
     try {
       for (const item of cartItems) {
-        if (item.sizes && item.selectedSize) {
-          // For products with sizes, get current product data
+        // 🔍 Si el producto tiene talla seleccionada (anillos, etc.)
+        if (item.selectedSize) {
           const { data: product, error: fetchError } = await supabase
             .from('products')
             .select('sizes')
             .eq('id', item.id)
             .single();
 
-          if (fetchError) {
-            console.error('Error fetching product:', fetchError);
-            throw new Error(`No se pudo actualizar el stock del producto ${item.name}`);
+          if (fetchError || !product) {
+            console.error('Error al obtener producto:', fetchError);
+            throw new Error(`❌ No se pudo cargar el producto "${item.name}" desde la base de datos`);
           }
 
-          // Update the specific size stock
-          const updatedSizes = product.sizes.map(sizeObj => {
+          console.log('📦 Producto recibido de la BD:', product);
+
+          if (!Array.isArray(product.sizes)) {
+            throw new Error(`❌ El producto "${item.name}" no tiene un campo 'sizes' válido`);
+          }
+
+          const updatedSizes = product.sizes.map((sizeObj) => {
             if (sizeObj.size === item.selectedSize) {
-              return {
-                ...sizeObj,
-                stock: Math.max(0, sizeObj.stock - item.quantity)
-              };
+              const currentStock = Number(sizeObj.stock);
+              if (isNaN(currentStock)) {
+                throw new Error(`❌ Stock inválido en la talla ${item.selectedSize} del producto "${item.name}"`);
+              }
+
+              const newStock = Math.max(0, currentStock - item.quantity);
+              return { ...sizeObj, stock: newStock };
             }
             return sizeObj;
           });
 
-          // Update the product in database
           const { error: updateError } = await supabase
             .from('products')
             .update({ sizes: updatedSizes })
             .eq('id', item.id);
 
           if (updateError) {
-            console.error('Error updating product stock:', updateError);
-            throw new Error(`No se pudo actualizar el stock del producto ${item.name}`);
+            console.error('Error al actualizar stock:', updateError);
+            throw new Error(`❌ No se pudo actualizar el stock del producto "${item.name}"`);
           }
         } else {
-          // For products without sizes (if you have them)
-          // You might want to handle this case differently
-          console.log('Product without sizes:', item.name);
+          // 🔍 Si el producto no tiene tallas (collares, etc.)
+          const { data: product, error: fetchError } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.id)
+            .single();
+
+          if (fetchError || !product) {
+            console.error('Error al obtener producto sin tallas:', fetchError);
+            throw new Error(`❌ No se pudo cargar el producto "${item.name}"`);
+          }
+
+          const currentStock = Number(product.stock);
+          if (isNaN(currentStock)) {
+            throw new Error(`❌ Stock inválido en el producto "${item.name}"`);
+          }
+
+          const newStock = Math.max(0, currentStock - item.quantity);
+
+          const { error: updateError } = await supabase
+            .from('products')
+            .update({ stock: newStock })
+            .eq('id', item.id);
+
+          if (updateError) {
+            console.error('Error al actualizar stock general:', updateError);
+            throw new Error(`❌ No se pudo actualizar el stock del producto "${item.name}"`);
+          }
         }
       }
-      
-      console.log('✅ Stock actualizado exitosamente');
+
+      console.log('✅ Stock actualizado correctamente');
       return true;
     } catch (error) {
-      console.error('❌ Error al actualizar stock:', error);
-      toast.error(error.message);
-      return false;
+      console.error('❌ Error general al actualizar stock:', error);
+      throw error; // No uses toast aquí, eso ya lo maneja onApprove
     }
   };
 
-  // Function to save order to database
+  // Guardar orden en la tabla 'orders' sin sesión (modo invitado)
   const saveOrderToDatabase = async (orderData, paypalOrderId) => {
     try {
+      
       const orderInsert = {
         paypal_order_id: paypalOrderId,
         customer_name: orderData.nombre,
@@ -90,19 +122,23 @@ export default function CheckoutPage() {
           calle: orderData.calle,
           colonia: orderData.colonia,
           ciudad: orderData.ciudad,
-          cp: orderData.cp
+          cp: orderData.cp,
         },
-        items: cart.map(item => ({
+        items: cart.map((item) => ({
           product_id: item.id,
           product_name: item.name,
           quantity: item.quantity,
           price: item.price,
-          selected_size: item.selectedSize || null
+          selected_size: item.selectedSize || null,
         })),
         total_amount: total,
         status: 'paid',
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        is_guest: true, // ✅ opcional si agregaste este campo en tu tabla
       };
+
+      console.log('🧾 Orden que se va a insertar:', orderInsert);
+
 
       const { data, error } = await supabase
         .from('orders')
@@ -111,18 +147,18 @@ export default function CheckoutPage() {
         .single();
 
       if (error) {
-        console.error('Error saving order to database:', error);
+        console.error('❌ Error saving order to database:', error);
         throw new Error('No se pudo guardar la orden en la base de datos');
       }
 
-      console.log('✅ Orden guardada en la base de datos:', data);
+      console.log('✅ Orden guardada en Supabase:', data);
       return data;
     } catch (error) {
-      console.error('❌ Error al guardar orden:', error);
-      toast.error(error.message);
-      return null;
+      console.error('❌ Error en saveOrderToDatabase:', error);
+      throw error;
     }
   };
+
 
   useEffect(() => {
     if (!showPayPal || paypalLoaded) return;
