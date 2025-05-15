@@ -8,7 +8,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { headers } from 'next/headers';
 import OrganizationSchema from "./components/OrganizationSchema"
-import TikTokPixel from "./components/TikTokPixel";
+import TikTokPixel from "./components/TiktokPixel";
 
 
 const geistSans = Geist({
