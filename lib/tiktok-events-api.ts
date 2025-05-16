@@ -47,7 +47,7 @@ class TikTokEventsAPI {
     }
   }
 
-  // Update your sendEvent method in lib/tiktok-events-api.ts
+ // Fixed sendEvent method for lib/tiktok-events-api.ts
   async sendEvent(eventName: string, eventData: EventData) {
     try {
       console.log('🔍 Debug - Access Token exists:', !!this.accessToken);
@@ -55,12 +55,12 @@ class TikTokEventsAPI {
       console.log('🔍 Debug - API Endpoint:', this.apiEndpoint);
 
       const payload = {
-        pixel_code: this.pixelId,
+        event_source: "web",                    // Changed from pixel_code
+        event_source_id: this.pixelId,         // Your pixel code goes here
         data: [{
           event: eventName,
-          event_id: `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-          timestamp: Math.floor(Date.now() / 1000).toString(),
-          event_source_id: "server_side_api", // Add this with a string value
+          event_time: Math.floor(Date.now() / 1000), // Changed from timestamp
+          event_id: `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Optional but recommended
           user: eventData.user || {},
           properties: eventData.properties || {}
         }]
@@ -93,6 +93,8 @@ class TikTokEventsAPI {
       throw error;
     }
   }
+
+
 
 
   // Track when someone views a product
