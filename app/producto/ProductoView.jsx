@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify'; 
 import ProductSchema from '../components/ProductSchema';
 import BreadcrumbSchema from '../components/BreadcrumbsSchema';
-import { tiktokPixel } from '../../lib/tiktokPixel'; // Add this import
+import { tiktokPixel } from '../../lib/tiktokPixel';
 
 export default function ProductoView({ product, relatedProducts = [] }) {
   const { addToCart } = useCart();
@@ -102,14 +102,7 @@ export default function ProductoView({ product, relatedProducts = [] }) {
             )}
           </div>
 
-          {/* Description with structured paragraphs for better SEO */}
-          <div className="text-gray-700 leading-relaxed space-y-4">
-            {product.description.split('\n').map((paragraph, idx) => (
-              <p key={idx}>{paragraph}</p>
-            ))}
-          </div>
-
-          {/* Sizes */}
+          {/* Sizes - placed before description on mobile */}
           {product.sizes && Array.isArray(product.sizes) && (
             <div>
               <h3 className="text-sm font-medium text-gray-700 mb-2">Talla</h3>
@@ -141,17 +134,27 @@ export default function ProductoView({ product, relatedProducts = [] }) {
             </div>
           )}
 
-          {/* Add to Cart Button */}
-          <button
-            onClick={handleAdd}
-            aria-label="Agregar al carrito"
-            className="bg-black text-white rounded-full py-3 font-semibold hover:bg-gray-800 transition"
-          >
-            AGREGAR AL CARRITO
-          </button>
+          {/* Add to Cart Button - moved up for mobile */}
+          <div className="order-first md:order-none md:mt-0 mt-4">
+            <button
+              onClick={handleAdd}
+              aria-label="Agregar al carrito"
+              className="bg-black text-white rounded-full py-3 font-semibold hover:bg-gray-800 transition w-full md:w-auto px-6"
+            >
+              AGREGAR AL CARRITO
+            </button>
+          </div>
+
+          {/* Description with structured paragraphs - improved contrast for mobile */}
+          <div className="text-black font-medium leading-relaxed space-y-4 bg-white/90 p-4 rounded-lg shadow-sm border border-gray-100 mt-4">
+            <h3 className="font-bold text-[#092536] mb-2">Descripción</h3>
+            {product.description.split('\n').map((paragraph, idx) => (
+              <p key={idx}>{paragraph}</p>
+            ))}
+          </div>
 
           {/* Shipping Note - good for SEO and CRO */}
-          <div className="text-sm text-gray-600 mt-4">
+          <div className="text-sm text-gray-800 mt-4 bg-gray-50 p-4 rounded-lg">
             <p>
               Compra antes de las <strong>11 am</strong> y recibe tu pedido el siguiente día
             </p>
