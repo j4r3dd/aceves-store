@@ -13,6 +13,30 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
   const [profile, setProfile] = useState(null);
 
+  // Helper function to fetch profile data
+  const fetchProfile = async (userId) => {
+    try {
+      console.log('Fetching profile for user:', userId);
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Profile fetch error:', error);
+        return null;
+      }
+      
+      console.log('Profile data received:', data);
+      return data;
+    } catch (err) {
+      console.error('Profile fetch exception:', err);
+      return null;
+    }
+  };
+
   // Initialize auth state and set up listener
   useEffect(() => {
     const initializeAuth = async () => {
@@ -24,16 +48,14 @@ export function AuthProvider({ children }) {
         setSession(sessionData.session);
         
         if (sessionData.session?.user) {
+          console.log('User authenticated:', sessionData.session.user.id);
           setUser(sessionData.session.user);
           
           // Fetch user profile if authenticated
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', sessionData.session.user.id)
-            .single();
-            
+          const profileData = await fetchProfile(sessionData.session.user.id);
           setProfile(profileData);
+        } else {
+          console.log('No session found');
         }
       } catch (err) {
         console.error('Auth initialization error:', err);
@@ -55,13 +77,8 @@ export function AuthProvider({ children }) {
         
         // Update profile when auth state changes
         if (newSession?.user) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', newSession.user.id)
-            .single();
-            
-          setProfile(data);
+          const profileData = await fetchProfile(newSession.user.id);
+          setProfile(profileData);
         } else {
           setProfile(null);
         }
@@ -79,14 +96,22 @@ export function AuthProvider({ children }) {
       setLoading(true);
       setError(null);
       
+      console.log('Attempting sign in for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
+      
+      console.log('Sign in successful');
       return data;
     } catch (err) {
+      console.error('Sign in exception:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -102,7 +127,13 @@ export function AuthProvider({ children }) {
       const { error } = await supabase.auth.signOut();
       
       if (error) throw error;
+      
+      // Clear user data
+      setUser(null);
+      setProfile(null);
+      setSession(null);
     } catch (err) {
+      console.error('Sign out error:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -114,6 +145,16 @@ export function AuthProvider({ children }) {
   const isAdmin = () => {
     return profile?.role === 'admin';
   };
+
+  // For debugging - remove in production
+  useEffect(() => {
+    console.log('Auth state updated:', { 
+      user: user?.id, 
+      profile: profile?.role,
+      isAuthenticated: !!user,
+      isAdmin: isAdmin()
+    });
+  }, [user, profile]);
 
   const value = {
     user,

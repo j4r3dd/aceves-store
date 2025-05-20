@@ -58,15 +58,12 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    // If not loading and not authenticated, redirect to login
+    // Only redirect if not loading and not authenticated
     if (!loading && !isAuthenticated) {
-      console.log('User not authenticated, redirecting to login page');
-      // Stay on the current page if it's the admin login page
-      if (pathname !== '/admin') {
-        router.push('/admin');
-      }
+      console.log('User not authenticated, showing login form');
+      // Don't redirect - the layout will show the login form
     }
-  }, [isAuthenticated, loading, router, pathname]);
+  }, [isAuthenticated, loading]);
 
   const handleLogout = async () => {
     try {
