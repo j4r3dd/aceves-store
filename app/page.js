@@ -73,6 +73,11 @@ export default async function Home() {
 
   // Add structured data for the homepage products
   function FeaturedProductsStructuredData() {
+
+    if (!products || products.length === 0) {
+    return null;
+    }
+
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "ItemList",
@@ -114,7 +119,7 @@ export default async function Home() {
     <>
       <ShopStructuredData />
       <WebsiteStructuredData />
-      {products.length > 0 && <FeaturedProductsStructuredData />}
+      {products && products.length > 0 && <FeaturedProductsStructuredData />}
       
       <PageWrapper>
         <PromoBanner />
