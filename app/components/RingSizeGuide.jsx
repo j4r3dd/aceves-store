@@ -30,94 +30,159 @@ export default function RingSizeGuide() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 text-slate-800">
-      <div className="text-center mb-6">
-        <h1 className="text-3xl font-serif text-blue-900">Guía de Tallas de Anillos</h1>
-        <p className="text-blue-500 italic">Convierte tu medida fácilmente</p>
-        <div className="mx-auto mt-4 w-12 h-12 bg-blue-200 rounded-full" />
-      </div>
-
-      <Tabs defaultValue="tabla">
-        <TabsList className="bg-blue-100 text-blue-900">
-          <TabsTrigger value="tabla">Tabla de Tallas</TabsTrigger>
-          <TabsTrigger value="medir">Cómo Medir</TabsTrigger>
-          <TabsTrigger value="calculadora">Calculadora</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="tabla">
-          <div className="mt-4 grid grid-cols-3 font-semibold text-center bg-blue-200 text-blue-900">
-            <div>Talla US</div>
-            <div>Diámetro (cm)</div>
-            <div>Circunferencia (cm)</div>
-          </div>
-          {sizeData.map((row, i) => (
-            <div
-              key={i}
-              onClick={() => setSelected(i)}
-              className={`grid grid-cols-3 py-2 px-4 cursor-pointer text-center transition rounded-md ${
-                selected === i ? 'bg-blue-100 scale-105 shadow' : 'hover:bg-blue-50'
-              }`}
-            >
-              <div>{row.us}</div>
-              <div>{row.diameter}</div>
-              <div>{row.circumference}</div>
-            </div>
-          ))}
-        </TabsContent>
-
-        <TabsContent value="medir">
-          <ol className="mt-4 space-y-4 list-decimal list-inside text-blue-900">
-            <li>
-              Usa un anillo que te quede bien y mide su diámetro interno con una regla.
-            </li>
-            <li>
-              Compara con la tabla para conocer tu talla.
-            </li>
-            <li>
-              También puedes envolver un hilo alrededor de tu dedo, medirlo y dividir entre π (3.14) para obtener el diámetro.
-            </li>
-          </ol>
-          <p className="mt-6 italic text-blue-600">
-            Consejo: Es mejor medir tus dedos al final del día y evitar hacerlo cuando estén fríos.
+    <div className="w-full min-h-screen bg-white px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto text-slate-800">
+        {/* Header - More mobile friendly */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-serif text-blue-900 mb-2">
+            Guía de Tallas de Anillos
+          </h1>
+          <p className="text-blue-500 italic text-sm sm:text-base">
+            Convierte tu medida fácilmente
           </p>
-        </TabsContent>
+          <div className="mx-auto mt-4 w-12 h-12 bg-blue-200 rounded-full" />
+        </div>
 
-        <TabsContent value="calculadora">
-          <div className="mt-4">
-            <label className="block mb-2 text-blue-900">Ingresa tu medida:</label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                placeholder="Ej. 1.75"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="text-black bg-white"
-              />
-              <select
-                className="border rounded p-2 text-black bg-white"
-                value={inputType}
-                onChange={(e) => setInputType(e.target.value)}
-              >
-                <option value="diameter">Diámetro</option>
-                <option value="circumference">Circunferencia</option>
-              </select>
-              <button
-                onClick={handleCalculation}
-                className="bg-blue-800 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Calcular
-              </button>
+        {/* Tabs - Better mobile spacing */}
+        <Tabs defaultValue="tabla" className="w-full">
+          <TabsList className="bg-blue-100 text-blue-900 w-full grid grid-cols-3 mb-6">
+            <TabsTrigger value="tabla" className="text-xs sm:text-sm">
+              Tabla de Tallas
+            </TabsTrigger>
+            <TabsTrigger value="medir" className="text-xs sm:text-sm">
+              Cómo Medir
+            </TabsTrigger>
+            <TabsTrigger value="calculadora" className="text-xs sm:text-sm">
+              Calculadora
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="tabla" className="mt-0">
+            {/* Mobile-First Table Design */}
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              {/* Header Row */}
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 font-semibold text-center bg-blue-200 text-blue-900 p-3 text-sm sm:text-base">
+                <div>Talla US</div>
+                <div>Diámetro (cm)</div>
+                <div>Circunferencia (cm)</div>
+              </div>
+              
+              {/* Data Rows */}
+              <div className="divide-y divide-gray-200">
+                {sizeData.map((row, i) => (
+                  <div
+                    key={i}
+                    onClick={() => setSelected(i)}
+                    className={`grid grid-cols-3 gap-2 sm:gap-4 py-3 px-3 cursor-pointer text-center transition-all duration-200 text-sm sm:text-base ${
+                      selected === i 
+                        ? 'bg-blue-100 scale-[1.02] shadow-md border-l-4 border-blue-500' 
+                        : 'hover:bg-blue-50 hover:scale-[1.01]'
+                    }`}
+                  >
+                    <div className="font-semibold text-blue-900">{row.us}</div>
+                    <div className="text-gray-700">{row.diameter}</div>
+                    <div className="text-gray-700">{row.circumference}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            {result && (
-              <Card className="mt-4 p-4 bg-blue-50 text-blue-900">
-                Talla más cercana: <strong>US {result.us}</strong><br />
-                Diámetro: {result.diameter} cm<br />
-                Circunferencia: {result.circumference} cm
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+
+          <TabsContent value="medir" className="mt-0">
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h3 className="text-lg sm:text-xl font-semibold text-blue-900 mb-4">
+                Cómo medir tu dedo
+              </h3>
+              <ol className="space-y-4 list-decimal list-inside text-blue-900 text-sm sm:text-base leading-relaxed">
+                <li>
+                  <strong>Método 1:</strong> Usa un anillo que te quede bien y mide su diámetro interno con una regla.
+                </li>
+                <li>
+                  <strong>Método 2:</strong> Envuelve un hilo alrededor de tu dedo, mídelo y divídelo entre π (3.14) para obtener el diámetro.
+                </li>
+                <li>
+                  <strong>Método 3:</strong> Usa una tira de papel, envuélvela alrededor del dedo y marca donde se junta.
+                </li>
+              </ol>
+              
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                <h4 className="font-semibold text-blue-800 mb-2">💡 Consejos importantes:</h4>
+                <ul className="text-blue-700 text-sm space-y-1">
+                  <li>• Mide al final del día cuando tus dedos están más hinchados</li>
+                  <li>• Evita medir cuando tengas las manos frías</li>
+                  <li>• Si estás entre dos tallas, elige la más grande</li>
+                  <li>• El anillo debe pasar cómodamente sobre el nudillo</li>
+                </ul>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="calculadora" className="mt-0">
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h3 className="text-lg sm:text-xl font-semibold text-blue-900 mb-4">
+                Calculadora de Tallas
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-2 text-blue-900 font-medium text-sm sm:text-base">
+                    Ingresa tu medida:
+                  </label>
+                  
+                  {/* Mobile-friendly input layout */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="Ej. 1.75"
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value)}
+                      className="text-black bg-white border-gray-300 flex-1"
+                    />
+                    
+                    <select
+                      className="border border-gray-300 rounded-md p-2 text-black bg-white min-w-[140px]"
+                      value={inputType}
+                      onChange={(e) => setInputType(e.target.value)}
+                    >
+                      <option value="diameter">Diámetro (cm)</option>
+                      <option value="circumference">Circunferencia (cm)</option>
+                    </select>
+                    
+                    <button
+                      onClick={handleCalculation}
+                      className="bg-blue-800 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors whitespace-nowrap"
+                    >
+                      Calcular
+                    </button>
+                  </div>
+                </div>
+
+                {result && (
+                  <Card className="p-4 bg-blue-50 text-blue-900 border-blue-200">
+                    <h4 className="font-semibold mb-2">📏 Resultado:</h4>
+                    <div className="space-y-1 text-sm sm:text-base">
+                      <div>Talla más cercana: <strong className="text-lg">US {result.us}</strong></div>
+                      <div>Diámetro: <strong>{result.diameter} cm</strong></div>
+                      <div>Circunferencia: <strong>{result.circumference} cm</strong></div>
+                    </div>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Contact info for mobile users */}
+        <div className="mt-8 p-4 bg-gray-50 rounded-lg text-center">
+          <p className="text-sm text-gray-600 mb-2">
+            ¿Necesitas ayuda con tu talla?
+          </p>
+          <p className="text-blue-600 font-medium">
+            Contáctanos por WhatsApp para asesoría personalizada
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

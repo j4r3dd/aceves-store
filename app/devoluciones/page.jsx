@@ -38,8 +38,8 @@ export default function DevolucionesPage() {
             <h2 className="text-xl font-semibold mb-3">3. Proceso de Devolución</h2>
             <p className="leading-relaxed">
               Para iniciar una devolución, el cliente deberá contactar a nuestro servicio de atención al cliente a través de 
-              <a href="mailto:soporte@aceves.com" className="text-accent hover:underline mx-1">soporte@aceves.com</a> 
-              o al <span className="font-medium">55 1234 5678</span>, proporcionando el número de pedido y una descripción del motivo 
+              <a href="mailto:corporativoaceves.lo@gmail.com" className="text-accent hover:underline mx-1">corporativoaceves@gmail.com</a> 
+              o al <span className="font-medium">+52 443 687 5928</span>, proporcionando el número de pedido y una descripción del motivo 
               de la devolución. Nuestro equipo proporcionará las instrucciones necesarias para completar el proceso.
             </p>
           </section>

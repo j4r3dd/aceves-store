@@ -63,7 +63,7 @@ function WebsiteStructuredData() {
 
 export default async function Home() {
   // Properly await cookies in Next.js 13+
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createServerComponentClient({ cookies: () => cookieStore });
 
   const { data: products = [] } = await supabase
@@ -71,41 +71,58 @@ export default async function Home() {
     .select('*')
     .limit(6); // Limit to 6 featured products
 
+    
   // Add structured data for the homepage products
   function FeaturedProductsStructuredData() {
-
-    if (!products || products.length === 0) {
+  // Guard against empty products array
+  if (!products || products.length === 0) {
     return null;
-    }
+  }
 
-    const jsonLd = {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
-      "itemListElement": products.map((product, index) => ({
-        "@type": "ListItem",
-        "position": index + 1,
-        "item": {
-          "@type": "Product",
-          "name": product.name,
-          "description": product.description,
-          "image": product.images?.[0] || '',
-          "url": `https://www.acevesoficial.com/producto/${product.id}`, // Replace with your domain
-          "sku": product.id,
-          "brand": {
-            "@type": "Brand",
-            "name": "Aceves Joyería"
-          },
-          "offers": {
-            "@type": "Offer",
-            "url": `https://www.acevesoficial.com/producto/${product.id}`, // Replace with your domain
-            "price": product.price,
-            "priceCurrency": "MXN",
-            "availability": "https://schema.org/InStock"
-          }
+  // Additional guard to make sure each product has the expected properties
+  const validProducts = products.filter(product => 
+    product && 
+    typeof product === 'object' && 
+    product.id && 
+    product.name && 
+    typeof product.price === 'number'
+  );
+
+  // If no valid products, return null
+  if (validProducts.length === 0) {
+    return null;
+  }
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": validProducts.map((product, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Product",
+        "name": product.name || 'Producto',
+        "description": product.description || '',
+        "image": product.images && product.images.length > 0 ? product.images[0] : '',
+        "url": `https://www.acevesoficial.com/producto/${product.id}`,
+        "sku": product.id,
+        "brand": {
+          "@type": "Brand",
+          "name": "Aceves Joyería"
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": `https://www.acevesoficial.com/producto/${product.id}`,
+          "price": product.price,
+          "priceCurrency": "MXN",
+          "availability": "https://schema.org/InStock"
         }
-      }))
-    };
+      }
+    }))
+  };
 
+  // Safe execution with try/catch to avoid any potential rendering errors
+  try {
     return (
       <Script
         id="featured-products-structured-data"
@@ -113,7 +130,11 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
     );
+  } catch (error) {
+    console.error("Error rendering FeaturedProductsStructuredData:", error);
+    return null;
   }
+}
 
   return (
     <>
