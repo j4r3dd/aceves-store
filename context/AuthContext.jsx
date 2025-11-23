@@ -40,6 +40,7 @@ export function AuthProvider({ children }) {
   // Initialize auth state and set up listener
   useEffect(() => {
     let isMounted = true;
+    let initialLoadComplete = false;
 
     // Set up auth state change listener FIRST
     // This ensures we catch the INITIAL_SESSION event from Supabase
@@ -47,7 +48,11 @@ export function AuthProvider({ children }) {
       async (event, newSession) => {
         if (!isMounted) return;
 
-        console.log('Auth state changed:', event);
+        console.log('Auth state changed:', event, newSession?.user?.id);
+
+        // Clear any previous errors on auth state change
+        setError(null);
+
         setSession(newSession);
         setUser(newSession?.user || null);
 
@@ -62,32 +67,24 @@ export function AuthProvider({ children }) {
         }
 
         // Mark loading as false after handling auth state
-        // This catches both INITIAL_SESSION and SIGNED_IN events
-        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          if (isMounted) {
-            setLoading(false);
-          }
+        if (isMounted) {
+          initialLoadComplete = true;
+          setLoading(false);
         }
       }
     );
 
-    // Also call getSession as a fallback with timeout
-    // This handles cases where onAuthStateChange might not fire
-    const initializeAuth = async () => {
+    // Fallback: if onAuthStateChange doesn't fire within 3 seconds, check session manually
+    const fallbackTimer = setTimeout(async () => {
+      if (!isMounted || initialLoadComplete) return;
+
+      console.log('Fallback: checking session manually');
       try {
-        // Add a timeout to prevent hanging forever
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
-        );
+        const { data: sessionData } = await supabase.auth.getSession();
 
-        const sessionPromise = supabase.auth.getSession();
+        if (!isMounted || initialLoadComplete) return;
 
-        const { data: sessionData } = await Promise.race([sessionPromise, timeoutPromise]);
-
-        if (!isMounted) return;
-
-        // Only update if we don't have a session yet (onAuthStateChange didn't fire)
-        if (!session && sessionData?.session) {
+        if (sessionData?.session) {
           setSession(sessionData.session);
           setUser(sessionData.session.user);
 
@@ -99,24 +96,17 @@ export function AuthProvider({ children }) {
           }
         }
       } catch (err) {
-        console.error('Auth initialization error:', err);
-        if (isMounted) {
-          setError(err.message);
-        }
+        console.error('Fallback session check error:', err);
       } finally {
-        // Ensure loading is set to false after timeout or completion
         if (isMounted) {
           setLoading(false);
         }
       }
-    };
-
-    // Small delay to let onAuthStateChange fire first
-    const timer = setTimeout(initializeAuth, 100);
+    }, 3000);
 
     return () => {
       isMounted = false;
-      clearTimeout(timer);
+      clearTimeout(fallbackTimer);
       authListener?.subscription?.unsubscribe();
     };
   }, []);
@@ -126,27 +116,28 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       setError(null);
-      
+
       console.log('Attempting sign in for:', email);
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
+
       if (error) {
         console.error('Sign in error:', error);
+        setLoading(false);
         throw error;
       }
-      
+
       console.log('Sign in successful');
+      // Don't set loading=false here - onAuthStateChange will handle it
       return data;
     } catch (err) {
       console.error('Sign in exception:', err);
       setError(err.message);
-      throw err;
-    } finally {
       setLoading(false);
+      throw err;
     }
   };
 
@@ -154,21 +145,24 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
       setError(null);
-      
+
       const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-      
-      // Clear user data
+
+      if (error) {
+        setLoading(false);
+        throw error;
+      }
+
+      // Clear user data immediately (onAuthStateChange will also fire)
       setUser(null);
       setProfile(null);
       setSession(null);
+      // Don't set loading=false here - onAuthStateChange will handle it
     } catch (err) {
       console.error('Sign out error:', err);
       setError(err.message);
-      throw err;
-    } finally {
       setLoading(false);
+      throw err;
     }
   };
 
