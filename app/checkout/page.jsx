@@ -116,9 +116,15 @@ export default function CheckoutPage() {
     // Avoid injecting the script more than once
     if (document.getElementById('paypal-sdk')) return;
 
+    // Use sandbox for development, production API for production
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const paypalClientId = isDevelopment
+      ? process.env.NEXT_PUBLIC_PAYPAL_SANDBOX_CLIENT_ID
+      : process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
+
     const script = document.createElement('script');
     script.id = 'paypal-sdk';
-    script.src = `https://www.paypal.com/sdk/js?client-id=${process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=MXN&components=buttons&intent=capture`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=MXN&components=buttons&intent=capture`;
     script.onload = () => {
       console.log('✅ PayPal SDK loaded');
       setPaypalLoaded(true);
