@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "../../lib/supabase"; // Adjust path if needed
 
@@ -30,16 +31,17 @@ export default function BannerSection() {
     setCurrent((prev) => (prev - 1 + images.length) % images.length);
   };
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     setCurrent((prev) => (prev + 1) % images.length);
-  };
+  }, [images.length]);
 
   useEffect(() => {
+    if (images.length === 0) return;
     const interval = setInterval(() => {
       nextSlide();
     }, 5000);
     return () => clearInterval(interval);
-  }, [current, images.length]);
+  }, [nextSlide, images.length]);
 
   return (
     <section className="w-full px-4 py-6 sm:px-6 lg:px-8">
@@ -54,11 +56,14 @@ export default function BannerSection() {
             style={{ transform: `translateX(-${current * 100}%)` }}
           >
             {images.map((img, index) => (
-              <Link key={index} href={img.link || "#"} className="min-w-full">
-                <img
+              <Link key={index} href={img.link || "#"} className="min-w-full relative aspect-[16/9]">
+                <Image
                   src={img.image_url}
                   alt={`Banner ${index + 1}`}
-                  className="w-full h-auto cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 1024px"
+                  className="object-cover cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
+                  priority={index === 0}
                 />
               </Link>
             ))}

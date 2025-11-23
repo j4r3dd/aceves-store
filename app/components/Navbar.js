@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
@@ -14,7 +15,14 @@ export default function Navbar() {
 
         {/* Logo */}
         <Link href="/">
-          <img src="https://hnaptwk79kknvilx.public.blob.vercel-storage.com/logo/logo%20principal%20%281%29-R8ZSkLmTZwcRUnBkL6NFtSnwc3Huie.png" alt="Aceves logo" className="h-20 w-auto cursor-pointer" />
+          <Image
+            src="https://hnaptwk79kknvilx.public.blob.vercel-storage.com/logo/logo%20principal%20%281%29-R8ZSkLmTZwcRUnBkL6NFtSnwc3Huie.png"
+            alt="Aceves logo"
+            width={150}
+            height={80}
+            className="h-20 w-auto cursor-pointer"
+            priority
+          />
         </Link>
 
         {/* Desktop Menu */}
