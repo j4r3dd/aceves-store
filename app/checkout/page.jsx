@@ -13,7 +13,7 @@ export default function CheckoutPage() {
 
   // Shipping fee logic: $49 MXN if subtotal is less than $999 MXN
   const FREE_SHIPPING_THRESHOLD = 999;
-  const SHIPPING_FEE = 49;
+  const SHIPPING_FEE = 1;
   const shippingCost = subtotal < FREE_SHIPPING_THRESHOLD ? SHIPPING_FEE : 0;
   const total = subtotal + shippingCost;
 
@@ -297,9 +297,9 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   required
                   inputMode={name === 'cp' || name === 'telefono' ? 'numeric' : undefined}
-                  pattern={name === 'cp' ? '[0-9]*' : undefined}
-                  maxLength={name === 'cp' ? 5 : undefined}
-                  onKeyDown={name === 'cp' ? (e) => {
+                  pattern={name === 'cp' || name === 'telefono' ? '[0-9]*' : undefined}
+                  maxLength={name === 'cp' ? 5 : name === 'telefono' ? 10 : undefined}
+                  onKeyDown={name === 'cp' || name === 'telefono' ? (e) => {
                     if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
                       e.preventDefault();
                     }
