@@ -29,6 +29,7 @@ export default function CheckoutPage() {
 
   const [showPayPal, setShowPayPal] = useState(false);
   const [paypalLoaded, setPaypalLoaded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Prevent double-capture
   const paypalRef = useRef();
 
   // 🔧 NEW: Use API route for stock updates (bypasses RLS with service key)
@@ -145,18 +146,29 @@ export default function CheckoutPage() {
             });
           },
           onApprove: async (data, actions) => {
+            // Prevent double-capture
+            if (isProcessing) {
+              console.log('⚠️ Payment already processing, ignoring duplicate');
+              return;
+            }
+            setIsProcessing(true);
+
             try {
-
               // Track AddPaymentInfo event when PayPal is approved
-
               await tiktokPixel.trackAddPaymentInfoEnhanced(cart, {
-              email: form.email,
-              phone: form.telefono
+                email: form.email,
+                phone: form.telefono
               });
 
               // Capture the payment
+              console.log('🔄 Attempting to capture order...');
               const order = await actions.order.capture();
               console.log('💰 Payment captured:', order);
+
+              // Verify capture was successful
+              if (order.status !== 'COMPLETED') {
+                throw new Error(`Payment not completed. Status: ${order.status}`);
+              }
 
               // 1. Update stock in database
               console.log('🔄 Starting stock update...');
@@ -233,7 +245,16 @@ export default function CheckoutPage() {
               return order;
             } catch (error) {
               console.error('❌ Error in payment process:', error);
-              toast.error(error.message || 'Error processing payment');
+              setIsProcessing(false); // Reset so user can retry
+
+              // Handle specific PayPal errors
+              if (error?.message?.includes('422') || error?.details?.[0]?.issue === 'ORDER_ALREADY_CAPTURED') {
+                toast.error('Este pago ya fue procesado. Si no ves tu confirmación, contacta soporte.');
+              } else if (error?.message?.includes('ORDER_NOT_APPROVED')) {
+                toast.error('El pago no fue aprobado. Por favor intenta de nuevo.');
+              } else {
+                toast.error(error.message || 'Error al procesar el pago. Intenta de nuevo.');
+              }
               throw error;
             }
           },
@@ -246,7 +267,7 @@ export default function CheckoutPage() {
     };
 
     document.body.appendChild(script);
-  }, [showPayPal, paypalLoaded, total, cart, form]);
+  }, [showPayPal, paypalLoaded, total, cart, form, isProcessing]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
