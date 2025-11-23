@@ -39,53 +39,84 @@ export function AuthProvider({ children }) {
 
   // Initialize auth state and set up listener
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        setLoading(true);
-        
-        // Get initial session
-        const { data: sessionData } = await supabase.auth.getSession();
-        setSession(sessionData.session);
-        
-        if (sessionData.session?.user) {
-          console.log('User authenticated:', sessionData.session.user.id);
-          setUser(sessionData.session.user);
-          
-          // Fetch user profile if authenticated
-          const profileData = await fetchProfile(sessionData.session.user.id);
-          setProfile(profileData);
-        } else {
-          console.log('No session found');
-        }
-      } catch (err) {
-        console.error('Auth initialization error:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    let isMounted = true;
 
-    // Initial auth check
-    initializeAuth();
-    
-    // Set up auth state change listener
+    // Set up auth state change listener FIRST
+    // This ensures we catch the INITIAL_SESSION event from Supabase
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
+        if (!isMounted) return;
+
         console.log('Auth state changed:', event);
         setSession(newSession);
         setUser(newSession?.user || null);
-        
+
         // Update profile when auth state changes
         if (newSession?.user) {
           const profileData = await fetchProfile(newSession.user.id);
-          setProfile(profileData);
+          if (isMounted) {
+            setProfile(profileData);
+          }
         } else {
           setProfile(null);
         }
+
+        // Mark loading as false after handling auth state
+        // This catches both INITIAL_SESSION and SIGNED_IN events
+        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
       }
     );
-    
+
+    // Also call getSession as a fallback with timeout
+    // This handles cases where onAuthStateChange might not fire
+    const initializeAuth = async () => {
+      try {
+        // Add a timeout to prevent hanging forever
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session fetch timeout')), 5000)
+        );
+
+        const sessionPromise = supabase.auth.getSession();
+
+        const { data: sessionData } = await Promise.race([sessionPromise, timeoutPromise]);
+
+        if (!isMounted) return;
+
+        // Only update if we don't have a session yet (onAuthStateChange didn't fire)
+        if (!session && sessionData?.session) {
+          setSession(sessionData.session);
+          setUser(sessionData.session.user);
+
+          if (sessionData.session.user) {
+            const profileData = await fetchProfile(sessionData.session.user.id);
+            if (isMounted) {
+              setProfile(profileData);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        if (isMounted) {
+          setError(err.message);
+        }
+      } finally {
+        // Ensure loading is set to false after timeout or completion
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Small delay to let onAuthStateChange fire first
+    const timer = setTimeout(initializeAuth, 100);
+
     return () => {
+      isMounted = false;
+      clearTimeout(timer);
       authListener?.subscription?.unsubscribe();
     };
   }, []);

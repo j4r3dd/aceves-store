@@ -39,6 +39,8 @@ export const metadata = {
   }
 };
 
+
+
 export default async function RootLayout({ children }) {
   const headersList = await headers();
   const path = headersList.get('x-pathname') || '';
