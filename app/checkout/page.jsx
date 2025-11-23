@@ -9,7 +9,13 @@ import { tiktokPixel } from '../../lib/tiktokPixel'; // Add this import
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCart();
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  // Shipping fee logic: $49 MXN if subtotal is less than $999 MXN
+  const FREE_SHIPPING_THRESHOLD = 999;
+  const SHIPPING_FEE = 49;
+  const shippingCost = subtotal < FREE_SHIPPING_THRESHOLD ? SHIPPING_FEE : 0;
+  const total = subtotal + shippingCost;
 
   const [form, setForm] = useState({
     nombre: '',
@@ -300,7 +306,26 @@ export default function CheckoutPage() {
                 {' — '}${(item.price * item.quantity).toLocaleString()} MXN
               </div>
             ))}
-            <p className="mt-2 font-bold">Total: ${total.toLocaleString()} MXN</p>
+            <div className="mt-3 space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span>Subtotal:</span>
+                <span>${subtotal.toLocaleString()} MXN</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Envío:</span>
+                {shippingCost > 0 ? (
+                  <span>${shippingCost.toLocaleString()} MXN</span>
+                ) : (
+                  <span className="text-green-600">Gratis</span>
+                )}
+              </div>
+              {shippingCost > 0 && (
+                <p className="text-xs text-gray-500">
+                  Envío gratis en compras mayores a ${FREE_SHIPPING_THRESHOLD.toLocaleString()} MXN
+                </p>
+              )}
+            </div>
+            <p className="mt-3 pt-2 border-t font-bold text-lg">Total: ${total.toLocaleString()} MXN</p>
           </div>
 
           {/* PayPal Area */}
