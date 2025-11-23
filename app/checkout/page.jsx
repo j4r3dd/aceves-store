@@ -296,6 +296,14 @@ export default function CheckoutPage() {
                   value={form[name]}
                   onChange={handleChange}
                   required
+                  inputMode={name === 'cp' || name === 'telefono' ? 'numeric' : undefined}
+                  pattern={name === 'cp' ? '[0-9]*' : undefined}
+                  maxLength={name === 'cp' ? 5 : undefined}
+                  onKeyDown={name === 'cp' ? (e) => {
+                    if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                      e.preventDefault();
+                    }
+                  } : undefined}
                   className="w-full border rounded px-3 py-2"
                 />
               </div>
