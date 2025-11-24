@@ -8,7 +8,7 @@ export default async function sitemap() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   );
   
-  const baseUrl = 'https://aceves-store.com'; // Replace with your domain
+  const baseUrl = 'https://www.acevesoficial.com';
   
   // Get all products
   const { data: products } = await supabase

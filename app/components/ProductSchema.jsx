@@ -1,7 +1,4 @@
 export default function ProductSchema({ product }) {
-    // Don't render anything on the server side
-    if (typeof window === 'undefined') return null;
-    
     // Build the structured data object
     const schemaData = {
       "@context": "https://schema.org/",

@@ -1,6 +1,4 @@
 export default function BreadcrumbSchema({ breadcrumbs }) {
-    if (typeof window === 'undefined') return null;
-    
     const schemaData = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
