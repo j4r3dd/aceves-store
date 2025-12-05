@@ -23,6 +23,7 @@ export default function CheckoutPage() {
     colonia: '',
     ciudad: '',
     cp: '',
+    pais: 'México',
     email: '',
     telefono: '',
   });
@@ -39,6 +40,7 @@ export default function CheckoutPage() {
     colonia: '',
     ciudad: '',
     cp: '',
+    pais: 'México',
   });
   const [address1Notes, setAddress1Notes] = useState('');
   const [address2Notes, setAddress2Notes] = useState('');
@@ -87,6 +89,7 @@ export default function CheckoutPage() {
           colonia: orderData.colonia,
           ciudad: orderData.ciudad,
           cp: orderData.cp,
+          pais: orderData.pais,
         },
         items: cart.map((item) => ({
           product_id: item.id,
@@ -257,7 +260,7 @@ export default function CheckoutPage() {
 
               // Reset envio cruzado state
               setEnvioCruzadoEnabled(false);
-              setSecondaryAddress({ calle: '', colonia: '', ciudad: '', cp: '' });
+              setSecondaryAddress({ calle: '', colonia: '', ciudad: '', cp: '', pais: 'México' });
               setAddress1Notes('');
               setAddress2Notes('');
 
@@ -304,19 +307,19 @@ export default function CheckoutPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { nombre, calle, colonia, ciudad, cp, email, telefono } = form;
+    const { nombre, calle, colonia, ciudad, cp, pais, email, telefono } = form;
 
     // Validate primary customer info and address
-    if (!nombre || !calle || !colonia || !ciudad || !cp || !email || !telefono) {
+    if (!nombre || !calle || !colonia || !ciudad || !cp || !pais || !email || !telefono) {
       toast.error('Por favor completa todos los campos de información personal y dirección principal.');
       return;
     }
 
     // Validate secondary address if envio cruzado is enabled
     if (envioCruzadoEnabled) {
-      const { calle: calle2, colonia: colonia2, ciudad: ciudad2, cp: cp2 } = secondaryAddress;
+      const { calle: calle2, colonia: colonia2, ciudad: ciudad2, cp: cp2, pais: pais2 } = secondaryAddress;
 
-      if (!calle2 || !colonia2 || !ciudad2 || !cp2) {
+      if (!calle2 || !colonia2 || !ciudad2 || !cp2 || !pais2) {
         toast.error('Por favor completa todos los campos de la dirección secundaria.');
         return;
       }
@@ -379,6 +382,20 @@ export default function CheckoutPage() {
                 />
               </div>
             ))}
+
+            {/* País Field */}
+            <div>
+              <label className="block font-medium">País *</label>
+              <select
+                name="pais"
+                value={form.pais}
+                onChange={handleChange}
+                required
+                className="w-full border rounded px-3 py-2 bg-white"
+              >
+                <option value="México">México</option>
+              </select>
+            </div>
           </div>
 
           {/* NEW: ENVIO CRUZADO SECTION */}
@@ -402,7 +419,7 @@ export default function CheckoutPage() {
                   <div>
                     <h3 className="font-semibold mb-2 text-black">Dirección 1 (Arriba)</h3>
                     <p className="text-sm mb-2 text-black">
-                      Calle: {form.calle}, {form.colonia}, {form.ciudad}, CP: {form.cp}
+                      Calle: {form.calle}, {form.colonia}, {form.ciudad}, CP: {form.cp}, {form.pais}
                     </p>
                     <label className="block font-medium mb-1 text-black">
                       ¿Qué artículo va a esta dirección? *
@@ -447,6 +464,20 @@ export default function CheckoutPage() {
                         />
                       </div>
                     ))}
+
+                    {/* País Field for Secondary Address */}
+                    <div className="mb-2">
+                      <label className="block font-medium text-black">País *</label>
+                      <select
+                        name="pais"
+                        value={secondaryAddress.pais}
+                        onChange={handleSecondaryAddressChange}
+                        required={envioCruzadoEnabled}
+                        className="w-full border rounded px-3 py-2 bg-white"
+                      >
+                        <option value="México">México</option>
+                      </select>
+                    </div>
 
                     {/* Address 2 Notes */}
                     <div className="mt-3">
