@@ -408,7 +408,7 @@ export default function CheckoutPage() {
                   onChange={(e) => setEnvioCruzadoEnabled(e.target.checked)}
                   className="w-5 h-5 rounded border-gray-300"
                 />
-                <span className="font-medium text-lg text-black">
+                <span className="font-medium text-lg text-white">
                   Envío Cruzado - Enviar a 2 direcciones diferentes
                 </span>
               </label>
