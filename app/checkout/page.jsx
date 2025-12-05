@@ -391,7 +391,7 @@ export default function CheckoutPage() {
                   onChange={(e) => setEnvioCruzadoEnabled(e.target.checked)}
                   className="w-5 h-5 rounded border-gray-300"
                 />
-                <span className="font-medium text-lg">
+                <span className="font-medium text-lg text-black">
                   Envío Cruzado - Enviar a 2 direcciones diferentes
                 </span>
               </label>
@@ -400,11 +400,11 @@ export default function CheckoutPage() {
                 <div className="space-y-6 bg-gray-50 p-4 rounded-lg">
                   {/* Address 1 Notes */}
                   <div>
-                    <h3 className="font-semibold mb-2">Dirección 1 (Arriba)</h3>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <h3 className="font-semibold mb-2 text-black">Dirección 1 (Arriba)</h3>
+                    <p className="text-sm mb-2 text-black">
                       Calle: {form.calle}, {form.colonia}, {form.ciudad}, CP: {form.cp}
                     </p>
-                    <label className="block font-medium mb-1">
+                    <label className="block font-medium mb-1 text-black">
                       ¿Qué artículo va a esta dirección? *
                     </label>
                     <textarea
@@ -418,7 +418,7 @@ export default function CheckoutPage() {
 
                   {/* Address 2 Section */}
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold mb-3">Dirección 2</h3>
+                    <h3 className="font-semibold mb-3 text-black">Dirección 2</h3>
 
                     {/* Secondary Address Fields */}
                     {[
@@ -428,7 +428,7 @@ export default function CheckoutPage() {
                       ['Código Postal', 'cp'],
                     ].map(([label, name]) => (
                       <div key={name} className="mb-2">
-                        <label className="block font-medium">{label} *</label>
+                        <label className="block font-medium text-black">{label} *</label>
                         <input
                           type="text"
                           name={name}
@@ -450,7 +450,7 @@ export default function CheckoutPage() {
 
                     {/* Address 2 Notes */}
                     <div className="mt-3">
-                      <label className="block font-medium mb-1">
+                      <label className="block font-medium mb-1 text-black">
                         ¿Qué artículo va a esta dirección? *
                       </label>
                       <textarea
