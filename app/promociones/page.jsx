@@ -138,6 +138,13 @@ export default async function PromocionesPage() {
                       -{getDiscountPercentage(product.original_price, product.price)}%
                     </div>
 
+                    {/* Envio Cruzado badge */}
+                    {product.envio_cruzado && (
+                      <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md z-10">
+                        Envío cruzado disponible
+                      </div>
+                    )}
+
                     <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-lg mb-4 bg-background">
                       <img
                         src={product.images?.[0]}

@@ -255,7 +255,7 @@ export default async function AnillosPage() {
               {products.map((product) => (
                 <Link key={product.id} href={`/producto/${product.id}`} className="group">
                   <div className="bg-white border rounded-2xl p-4 shadow-sm hover:shadow-lg transition duration-300 ease-in-out cursor-pointer group-hover:scale-[1.02]">
-                    <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-lg mb-4 bg-background">
+                    <div className="aspect-w-1 aspect-h-1 overflow-hidden rounded-lg mb-4 bg-background relative">
                       <img
                         src={product.images?.[0]}
                         alt={`Anillo de promesa ${product.name} - Joyería Aceves`}
@@ -264,6 +264,11 @@ export default async function AnillosPage() {
                         height="300"
                         loading="lazy"
                       />
+                      {product.envio_cruzado && (
+                        <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
+                          Envío cruzado disponible
+                        </div>
+                      )}
                     </div>
                     <h2 className="text-base font-semibold text-[#092536] leading-tight line-clamp-2">
                       {product.name}

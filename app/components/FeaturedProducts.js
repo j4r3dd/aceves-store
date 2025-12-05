@@ -20,6 +20,11 @@ export default function FeaturedProducts({ products = [] }) {
                   sizes="(max-width: 768px) 50vw, 33vw"
                   className="object-contain group-hover:scale-105 transition-transform duration-300"
                 />
+                {product.envio_cruzado && (
+                  <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-semibold px-2 py-1 rounded-full shadow-md">
+                    Envío cruzado disponible
+                  </div>
+                )}
               </div>
               <h3 className="text-base font-semibold text-[#092536] leading-tight line-clamp-2">
                 {product.name}
