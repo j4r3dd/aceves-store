@@ -33,6 +33,7 @@ export default function ProductManagerPage() {
     description: '',
     imageText: '',
     sizes: [], // Array of { size: string, stock: number }
+    envio_cruzado: false,
   });
 
   // Fetch all products
@@ -171,6 +172,7 @@ export default function ProductManagerPage() {
         description: newProduct.description.trim() || '',
         images,
         sizes: newProduct.sizes.map(s => ({ size: s.size.trim(), stock: Number(s.stock) })),
+        envio_cruzado: Boolean(newProduct.envio_cruzado),
       };
 
       console.log("Attempting to insert product:", newEntry);
@@ -205,6 +207,7 @@ export default function ProductManagerPage() {
         description: '',
         imageText: '',
         sizes: [],
+        envio_cruzado: false,
       });
 
     } catch (err) {
@@ -252,6 +255,7 @@ export default function ProductManagerPage() {
         description: editingProduct.description?.trim() || '',
         images,
         sizes: editingProduct.sizes.map(s => ({ size: s.size.trim(), stock: Number(s.stock) })),
+        envio_cruzado: Boolean(editingProduct.envio_cruzado),
       };
 
       const { error } = await supabase
@@ -331,6 +335,27 @@ export default function ProductManagerPage() {
             <option key={cat.value} value={cat.value}>{cat.label}</option>
           ))}
         </select>
+
+        {/* Envio Cruzado Checkbox */}
+        <div className="mb-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={newProduct.envio_cruzado || false}
+              onChange={(e) => setNewProduct({
+                ...newProduct,
+                envio_cruzado: e.target.checked
+              })}
+              className="w-4 h-4 rounded border-gray-300"
+            />
+            <span className="text-sm font-medium text-gray-700">
+              Envío Cruzado (producto vendido como set de 2)
+            </span>
+          </label>
+          <p className="text-xs text-gray-500 ml-6 mt-1">
+            Permite enviar a 2 direcciones diferentes
+          </p>
+        </div>
 
         <input
           type="number"
@@ -495,7 +520,14 @@ export default function ProductManagerPage() {
 
                 {/* Product Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-lg truncate">{product.name}</h3>
+                  <h3 className="font-semibold text-lg truncate flex items-center gap-2">
+                    {product.name}
+                    {product.envio_cruzado && (
+                      <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                        Envío Cruzado
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-sm text-gray-600">
                     Category: <span className="font-medium">{product.category}</span>
                   </p>
@@ -558,6 +590,27 @@ export default function ProductManagerPage() {
                 <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
+
+            {/* Envio Cruzado Checkbox */}
+            <div className="mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editingProduct.envio_cruzado || false}
+                  onChange={(e) => setEditingProduct({
+                    ...editingProduct,
+                    envio_cruzado: e.target.checked
+                  })}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Envío Cruzado (producto vendido como set de 2)
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 ml-6 mt-1">
+                Permite enviar a 2 direcciones diferentes
+              </p>
+            </div>
 
             <input
               type="number"

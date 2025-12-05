@@ -214,17 +214,23 @@ export function CartProvider({ children }) {
     return validationErrors;
   };
 
+  // Check if cart contains any envio_cruzado products
+  const hasEnvioCruzadoProducts = () => {
+    return cart.some(item => item.envio_cruzado === true);
+  };
+
   return (
     <CartContext.Provider
-      value={{ 
-        cart, 
-        addToCart, 
-        removeFromCart, 
-        increaseQuantity, 
+      value={{
+        cart,
+        addToCart,
+        removeFromCart,
+        increaseQuantity,
         decreaseQuantity,
         clearCart,
         validateCartStock,
-        getAvailableStock
+        getAvailableStock,
+        hasEnvioCruzadoProducts
       }}
     >
       {children}

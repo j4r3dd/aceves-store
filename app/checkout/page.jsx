@@ -8,7 +8,7 @@ import { toast } from 'react-toastify';
 import { tiktokPixel } from '../../lib/tiktokPixel'; // Add this import
 
 export default function CheckoutPage() {
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, hasEnvioCruzadoProducts } = useCart();
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   // Shipping fee logic: $49 MXN if subtotal is less than $999 MXN
@@ -31,6 +31,17 @@ export default function CheckoutPage() {
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); // Prevent double-capture
   const paypalRef = useRef();
+
+  // NEW STATE VARIABLES FOR ENVIO CRUZADO
+  const [envioCruzadoEnabled, setEnvioCruzadoEnabled] = useState(false);
+  const [secondaryAddress, setSecondaryAddress] = useState({
+    calle: '',
+    colonia: '',
+    ciudad: '',
+    cp: '',
+  });
+  const [address1Notes, setAddress1Notes] = useState('');
+  const [address2Notes, setAddress2Notes] = useState('');
 
   // 🔧 NEW: Use API route for stock updates (bypasses RLS with service key)
   const updateStock = async (cartItems) => {
@@ -88,6 +99,13 @@ export default function CheckoutPage() {
         status: 'paid',
         created_at: new Date().toISOString(),
         is_guest: true,
+        // NEW FIELDS FOR ENVIO CRUZADO
+        is_envio_cruzado: envioCruzadoEnabled,
+        ...(envioCruzadoEnabled && {
+          secondary_shipping_address: secondaryAddress,
+          address_1_notes: address1Notes,
+          address_2_notes: address2Notes,
+        }),
       };
 
       console.log('🧾 Saving order to database:', orderInsert);
@@ -236,8 +254,15 @@ export default function CheckoutPage() {
 
               // 4. Clear cart and redirect
               clearCart();
+
+              // Reset envio cruzado state
+              setEnvioCruzadoEnabled(false);
+              setSecondaryAddress({ calle: '', colonia: '', ciudad: '', cp: '' });
+              setAddress1Notes('');
+              setAddress2Notes('');
+
               toast.success(`✅ Payment completed for ${form.nombre} 🎉`);
-              
+
               setTimeout(() => {
                 window.location.href = `/gracias?nombre=${encodeURIComponent(form.nombre)}&orderId=${order.id}`;
               }, 1000);
@@ -273,13 +298,38 @@ export default function CheckoutPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleSecondaryAddressChange = (e) => {
+    setSecondaryAddress({ ...secondaryAddress, [e.target.name]: e.target.value });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const { nombre, calle, colonia, ciudad, cp, email, telefono } = form;
 
+    // Validate primary customer info and address
     if (!nombre || !calle || !colonia || !ciudad || !cp || !email || !telefono) {
-      toast.error('Please complete all fields.');
+      toast.error('Por favor completa todos los campos de información personal y dirección principal.');
       return;
+    }
+
+    // Validate secondary address if envio cruzado is enabled
+    if (envioCruzadoEnabled) {
+      const { calle: calle2, colonia: colonia2, ciudad: ciudad2, cp: cp2 } = secondaryAddress;
+
+      if (!calle2 || !colonia2 || !ciudad2 || !cp2) {
+        toast.error('Por favor completa todos los campos de la dirección secundaria.');
+        return;
+      }
+
+      if (!address1Notes.trim()) {
+        toast.error('Por favor especifica qué artículo va a la Dirección 1.');
+        return;
+      }
+
+      if (!address2Notes.trim()) {
+        toast.error('Por favor especifica qué artículo va a la Dirección 2.');
+        return;
+      }
     }
 
     setShowPayPal(true);
@@ -330,6 +380,101 @@ export default function CheckoutPage() {
               </div>
             ))}
           </div>
+
+          {/* NEW: ENVIO CRUZADO SECTION */}
+          {hasEnvioCruzadoProducts() && (
+            <div className="border-t pt-4 mt-4">
+              <label className="flex items-center gap-2 cursor-pointer mb-4">
+                <input
+                  type="checkbox"
+                  checked={envioCruzadoEnabled}
+                  onChange={(e) => setEnvioCruzadoEnabled(e.target.checked)}
+                  className="w-5 h-5 rounded border-gray-300"
+                />
+                <span className="font-medium text-lg">
+                  Envío Cruzado - Enviar a 2 direcciones diferentes
+                </span>
+              </label>
+
+              {envioCruzadoEnabled && (
+                <div className="space-y-6 bg-gray-50 p-4 rounded-lg">
+                  {/* Address 1 Notes */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Dirección 1 (Arriba)</h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Calle: {form.calle}, {form.colonia}, {form.ciudad}, CP: {form.cp}
+                    </p>
+                    <label className="block font-medium mb-1">
+                      ¿Qué artículo va a esta dirección? *
+                    </label>
+                    <textarea
+                      value={address1Notes}
+                      onChange={(e) => setAddress1Notes(e.target.value)}
+                      placeholder="Ej: Anillo para mujer"
+                      className="w-full border rounded px-3 py-2 h-20"
+                      required={envioCruzadoEnabled}
+                    />
+                  </div>
+
+                  {/* Address 2 Section */}
+                  <div className="border-t pt-4">
+                    <h3 className="font-semibold mb-3">Dirección 2</h3>
+
+                    {/* Secondary Address Fields */}
+                    {[
+                      ['Calle y Número', 'calle'],
+                      ['Colonia', 'colonia'],
+                      ['Ciudad', 'ciudad'],
+                      ['Código Postal', 'cp'],
+                    ].map(([label, name]) => (
+                      <div key={name} className="mb-2">
+                        <label className="block font-medium">{label} *</label>
+                        <input
+                          type="text"
+                          name={name}
+                          value={secondaryAddress[name]}
+                          onChange={handleSecondaryAddressChange}
+                          required={envioCruzadoEnabled}
+                          inputMode={name === 'cp' ? 'numeric' : undefined}
+                          pattern={name === 'cp' ? '[0-9]*' : undefined}
+                          maxLength={name === 'cp' ? 5 : undefined}
+                          onKeyDown={name === 'cp' ? (e) => {
+                            if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          } : undefined}
+                          className="w-full border rounded px-3 py-2"
+                        />
+                      </div>
+                    ))}
+
+                    {/* Address 2 Notes */}
+                    <div className="mt-3">
+                      <label className="block font-medium mb-1">
+                        ¿Qué artículo va a esta dirección? *
+                      </label>
+                      <textarea
+                        value={address2Notes}
+                        onChange={(e) => setAddress2Notes(e.target.value)}
+                        placeholder="Ej: Anillo para hombre"
+                        className="w-full border rounded px-3 py-2 h-20"
+                        required={envioCruzadoEnabled}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Informational Note */}
+                  <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-800">
+                    <p className="font-medium mb-1">Nota importante:</p>
+                    <p>
+                      El costo de envío se aplica una sola vez. Ambas direcciones recibirán su artículo
+                      en el mismo plazo de entrega.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Order Summary */}
           <div className="border-t pt-4">

@@ -10,6 +10,7 @@ export interface Product {
   price: number;
   description: string;
   images: string[];
+  envio_cruzado?: boolean;
   [key: string]: any;
 }
 
