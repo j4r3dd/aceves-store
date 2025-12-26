@@ -4,7 +4,7 @@
 
 import { SupabaseService } from '../services/supabase-service';
 import { ApiException } from '../utils';
-import { createServerSupabaseClient } from '../../supabase-server';
+import { createServerSupabaseClient, createServiceRoleClient } from '../../supabase-server';
 import { emailService, OrderEmailData } from '../../email-service';
 
 // Types
@@ -59,12 +59,19 @@ const service = SupabaseService.getInstance();
  * Get all orders for a specific user
  */
 export const getUserOrders = async (userId: string): Promise<Order[]> => {
-  const orders = await service.getTable<Order>('orders', {
-    filter: { user_id: userId },
-    order: { column: 'created_at', ascending: false },
-  });
+  const supabase = createServiceRoleClient();
 
-  return orders;
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new ApiException(500, error.message, error);
+  }
+
+  return data as Order[];
 };
 
 /**
@@ -110,7 +117,7 @@ export const getAllOrders = async (filters?: {
  * Sends order confirmation email automatically
  */
 export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>): Promise<Order> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // Create the order
   const order = await service.createRecord<Order>('orders', {
@@ -129,7 +136,12 @@ export const createOrder = async (orderData: Omit<Order, 'id' | 'created_at'>): 
     customerName: order.customer_name,
     customerEmail: order.customer_email,
     orderId: order.paypal_order_id,
-    items: order.items,
+    items: order.items.map(item => ({
+      name: item.product_name,
+      quantity: item.quantity,
+      price: item.price,
+      selectedSize: item.selected_size
+    })),
     total: order.total_amount,
     originalTotal: order.original_total,
     couponDiscount: order.coupon_discount,
@@ -182,7 +194,7 @@ export const updateOrderStatus = async (
   status: 'paid' | 'shipped' | 'delivered',
   trackingNumber?: string
 ): Promise<Order> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const updates: Partial<Order> = {
     shipping_status: status,
@@ -213,7 +225,12 @@ export const updateOrderStatus = async (
       customerName: order.customer_name,
       customerEmail: order.customer_email,
       orderId: order.paypal_order_id,
-      items: order.items,
+      items: order.items.map(item => ({
+        name: item.product_name,
+        quantity: item.quantity,
+        price: item.price,
+        selectedSize: item.selected_size
+      })),
       total: order.total_amount,
       shippingAddress: order.shipping_address,
       trackingNumber: order.tracking_number,
@@ -232,7 +249,7 @@ export const updateOrderStatus = async (
  * Search orders by customer email (admin only)
  */
 export const searchOrdersByEmail = async (email: string): Promise<Order[]> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data: orders, error } = await supabase
     .from('orders')
@@ -257,7 +274,7 @@ export const getOrderStats = async (): Promise<{
   averageOrderValue: number;
   ordersByStatus: Record<string, number>;
 }> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // Get total orders and revenue
   const { data: orders } = await supabase.from('orders').select('total_amount, shipping_status');

@@ -42,7 +42,7 @@ export const getUserAddresses = async (userId: string): Promise<UserAddress[]> =
 export const createUserAddress = async (
   address: Omit<UserAddress, 'id' | 'created_at' | 'updated_at'>
 ): Promise<UserAddress> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // If this address is being set as default, unset other defaults first
   if (address.is_default) {
@@ -70,7 +70,7 @@ export const updateUserAddress = async (
   addressId: string,
   updates: Partial<UserAddress>
 ): Promise<UserAddress> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // If setting this address as default, unset other defaults
   if (updates.is_default) {
@@ -121,7 +121,7 @@ export const deleteUserAddress = async (addressId: string): Promise<boolean> => 
  * Get user's default address
  */
 export const getDefaultAddress = async (userId: string): Promise<UserAddress | null> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase
     .from('user_addresses')
@@ -143,7 +143,7 @@ export const getDefaultAddress = async (userId: string): Promise<UserAddress | n
  * Set an address as default
  */
 export const setDefaultAddress = async (addressId: string, userId: string): Promise<UserAddress> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // Unset all other defaults
   await supabase

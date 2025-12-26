@@ -166,12 +166,20 @@ export function AuthProvider({ children }) {
         throw new Error(data.error || 'Error al crear la cuenta');
       }
 
-      console.log('Registration successful');
+      console.log('Registration successful, now signing in...');
 
       // Now sign in the user automatically
-      const signInResult = await signIn(email, password);
-
-      return signInResult;
+      try {
+        const signInResult = await signIn(email, password);
+        console.log('Auto sign-in successful');
+        return signInResult;
+      } catch (signInError) {
+        console.error('Auto sign-in failed:', signInError);
+        // Registration succeeded but auto-login failed
+        // User can manually log in
+        setLoading(false);
+        throw new Error('Cuenta creada exitosamente. Por favor inicia sesión manualmente.');
+      }
     } catch (err) {
       console.error('Sign up exception:', err);
       setError(err.message);

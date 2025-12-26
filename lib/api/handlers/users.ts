@@ -4,7 +4,7 @@
 
 import { SupabaseService } from '../services/supabase-service';
 import { ApiException } from '../utils';
-import { createServerSupabaseClient } from '../../supabase-server';
+import { createServerSupabaseClient, createServiceRoleClient } from '../../supabase-server';
 import { emailService } from '../../email-service';
 
 // Types
@@ -33,20 +33,19 @@ const service = SupabaseService.getInstance();
  * Register a new customer user
  */
 export const registerUser = async (data: UserRegistrationData): Promise<{ user: any; profile: any }> => {
-  const supabase = createServerSupabaseClient();
+  // Use service role client for registration to ensure triggers have proper permissions
+  const supabase = createServiceRoleClient();
 
-  // Check if user already exists by email
-  const { data: existingProfile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('email', data.email)
-    .single();
+  // Check if user already exists by email (check auth.users via admin API)
+  const { data: existingUsers } = await supabase.auth.admin.listUsers();
+  const userExists = existingUsers?.users?.some(u => u.email === data.email);
 
-  if (existingProfile) {
+  if (userExists) {
     throw new ApiException(400, 'Ya existe una cuenta con este correo electrónico');
   }
 
-  // Create auth user with Supabase Auth
+  // Create auth user with Supabase Auth (using normal signUp to allow immediate login)
+  // We use service role client to bypass email confirmation requirement
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
@@ -55,6 +54,7 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
         nombre: data.nombre,
         phone: data.telefono,
       },
+      emailRedirectTo: undefined, // Disable email confirmation for now
     },
   });
 
@@ -68,9 +68,9 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
   }
 
   // Create profile record (using service role to bypass RLS during creation)
+  // Note: profiles table doesn't have an 'email' column - email is stored in auth.users
   const profileData = {
     id: authData.user.id,
-    email: data.email,
     nombre: data.nombre,
     phone: data.telefono,
     role: 'customer',
@@ -158,7 +158,7 @@ export const getUserActiveDiscount = async (userId: string): Promise<{
   discount_value: number;
   reason: string;
 } | null> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data, error } = await supabase
     .from('user_discounts')

@@ -41,7 +41,7 @@ export const validateCoupon = async (
   cartTotal: number,
   userId?: string
 ): Promise<CouponValidationResult> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // Get coupon by code (case-insensitive)
   const { data: coupon, error } = await supabase
@@ -153,7 +153,7 @@ export const applyCoupon = async (
   userId: string,
   orderId: string
 ): Promise<void> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // Increment current_uses
   const { error: updateError } = await supabase.rpc('increment_coupon_uses', {
@@ -204,7 +204,7 @@ export const getAllCoupons = async (): Promise<Coupon[]> => {
 export const createCoupon = async (
   coupon: Omit<Coupon, 'current_uses' | 'created_at' | 'updated_at'>
 ): Promise<Coupon> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   // Check if code already exists
   const { data: existing } = await supabase
@@ -272,7 +272,7 @@ export const getCouponStats = async (couponId: string): Promise<{
   uniqueUsers: number;
   totalDiscount: number;
 }> => {
-  const supabase = createServerSupabaseClient();
+  const supabase = await createServerSupabaseClient();
 
   const { data: usages } = await supabase
     .from('user_coupons')
