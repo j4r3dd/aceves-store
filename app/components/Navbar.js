@@ -4,10 +4,12 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { cart } = useCart(); // 👈 get cart
+  const { isAuthenticated } = useAuth(); // 👈 get auth state
 
   return (
     <header className="w-full bg-white text-[#092536] shadow-sm sticky top-0 z-50">
@@ -58,7 +60,15 @@ export default function Navbar() {
 
 
           {/* 👤 Account icon */}
-          <span className="text-lg hover:text-accent cursor-pointer">👤</span>
+          {isAuthenticated ? (
+            <Link href="/cuenta" className="text-lg hover:text-accent cursor-pointer" title="Mi Cuenta">
+              👤
+            </Link>
+          ) : (
+            <Link href="/login" className="text-lg hover:text-accent cursor-pointer" title="Iniciar Sesión">
+              👤
+            </Link>
+          )}
         </div>
       </nav>
 

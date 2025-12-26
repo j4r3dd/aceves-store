@@ -4,7 +4,10 @@
       "Bash(npm run build:*)",
       "Bash(npx eslint:*)",
       "Bash(node --check:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

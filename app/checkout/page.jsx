@@ -1,21 +1,33 @@
 'use client';
 
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 import { toast } from 'react-toastify';
-import { tiktokPixel } from '../../lib/tiktokPixel'; // Add this import
+import { tiktokPixel } from '../../lib/tiktokPixel';
+import CouponInput from '../components/CouponInput';
 
 export default function CheckoutPage() {
   const { cart, clearCart, hasEnvioCruzadoProducts } = useCart();
+  const { user, isAuthenticated } = useAuth();
+
+  // Coupon and discount state
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [userDiscount, setUserDiscount] = useState(0);
+
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // Shipping fee logic: $49 MXN if subtotal is less than $999 MXN
+  // Calculate discounts
+  const couponDiscount = appliedCoupon?.discount || 0;
+  const subtotalAfterDiscounts = subtotal - couponDiscount - userDiscount;
+
+  // Shipping fee logic: $1 MXN if subtotal (after discounts) is less than $999 MXN
   const FREE_SHIPPING_THRESHOLD = 999;
   const SHIPPING_FEE = 1;
-  const shippingCost = subtotal < FREE_SHIPPING_THRESHOLD ? SHIPPING_FEE : 0;
-  const total = subtotal + shippingCost;
+  const shippingCost = subtotalAfterDiscounts < FREE_SHIPPING_THRESHOLD ? SHIPPING_FEE : 0;
+  const total = subtotalAfterDiscounts + shippingCost;
 
   const [form, setForm] = useState({
     nombre: '',
@@ -76,11 +88,53 @@ export default function CheckoutPage() {
     }
   };
 
+  // Pre-fill form with user's default address if authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetch('/api/addresses')
+        .then((res) => res.json())
+        .then((addresses) => {
+          const defaultAddr = addresses.find((addr) => addr.is_default) || addresses[0];
+          if (defaultAddr) {
+            setForm({
+              nombre: defaultAddr.nombre || '',
+              calle: defaultAddr.calle || '',
+              colonia: defaultAddr.colonia || '',
+              ciudad: defaultAddr.ciudad || '',
+              cp: defaultAddr.cp || '',
+              pais: defaultAddr.pais || 'México',
+              email: user.email || '',
+              telefono: defaultAddr.telefono || '',
+            });
+          } else {
+            // No saved address, just pre-fill email
+            setForm((prev) => ({ ...prev, email: user.email || '' }));
+          }
+        })
+        .catch((err) => console.error('Error fetching addresses:', err));
+
+      // Fetch user's active discount
+      fetch('/api/users/discount')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.discount_value) {
+            const discount =
+              data.discount_type === 'percentage'
+                ? (subtotal * data.discount_value) / 100
+                : data.discount_value;
+            setUserDiscount(Math.min(discount, subtotal));
+          }
+        })
+        .catch((err) => console.error('Error fetching user discount:', err));
+    }
+  }, [isAuthenticated, user, subtotal]);
+
   // Function to save order to database
   const saveOrderToDatabase = async (orderData, paypalOrderId) => {
     try {
       const orderInsert = {
         paypal_order_id: paypalOrderId,
+        user_id: isAuthenticated && user ? user.id : null,
         customer_name: orderData.nombre,
         customer_email: orderData.email,
         customer_phone: orderData.telefono,
@@ -99,9 +153,14 @@ export default function CheckoutPage() {
           selected_size: item.selectedSize || null,
         })),
         total_amount: total,
+        original_total: subtotal,
+        coupon_code: appliedCoupon?.coupon?.code || null,
+        coupon_discount: couponDiscount,
+        user_discount: userDiscount,
         status: 'paid',
+        shipping_status: 'paid',
         created_at: new Date().toISOString(),
-        is_guest: true,
+        is_guest: !isAuthenticated,
         // NEW FIELDS FOR ENVIO CRUZADO
         is_envio_cruzado: envioCruzadoEnabled,
         ...(envioCruzadoEnabled && {
@@ -507,6 +566,25 @@ export default function CheckoutPage() {
             </div>
           )}
 
+          {/* Guest Login Prompt */}
+          {!isAuthenticated && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>¿Ya tienes cuenta?</strong>{' '}
+                <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                  Inicia sesión
+                </Link>{' '}
+                para acceder a descuentos exclusivos y ver tus pedidos anteriores.
+              </p>
+            </div>
+          )}
+
+          {/* Coupon Input Section */}
+          <CouponInput
+            cartTotal={subtotal}
+            onCouponApplied={(couponData) => setAppliedCoupon(couponData)}
+          />
+
           {/* Order Summary */}
           <div className="border-t pt-4">
             <h2 className="text-lg font-semibold mb-2">Resumen del Pedido</h2>
@@ -522,6 +600,23 @@ export default function CheckoutPage() {
                 <span>Subtotal:</span>
                 <span>${subtotal.toLocaleString()} MXN</span>
               </div>
+
+              {/* Coupon Discount Display */}
+              {couponDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Descuento por cupón ({appliedCoupon?.coupon?.code}):</span>
+                  <span>-${couponDiscount.toLocaleString()} MXN</span>
+                </div>
+              )}
+
+              {/* User Discount Display */}
+              {userDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                  <span>Descuento de usuario:</span>
+                  <span>-${userDiscount.toLocaleString()} MXN</span>
+                </div>
+              )}
+
               <div className="flex justify-between">
                 <span>Envío:</span>
                 {shippingCost > 0 ? (
@@ -537,6 +632,13 @@ export default function CheckoutPage() {
               )}
             </div>
             <p className="mt-3 pt-2 border-t font-bold text-lg">Total: ${total.toLocaleString()} MXN</p>
+
+            {/* Savings Summary */}
+            {(couponDiscount > 0 || userDiscount > 0) && (
+              <p className="text-sm text-green-600 mt-2">
+                Ahorraste ${(couponDiscount + userDiscount).toLocaleString()} MXN 🎉
+              </p>
+            )}
           </div>
 
           {/* PayPal Area */}

@@ -141,6 +141,45 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const signUp = async (email, password, metadata) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('Attempting registration for:', email);
+
+      // Call our registration API endpoint
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          nombre: metadata.nombre,
+          telefono: metadata.telefono,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear la cuenta');
+      }
+
+      console.log('Registration successful');
+
+      // Now sign in the user automatically
+      const signInResult = await signIn(email, password);
+
+      return signInResult;
+    } catch (err) {
+      console.error('Sign up exception:', err);
+      setError(err.message);
+      setLoading(false);
+      throw err;
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
@@ -190,6 +229,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!user,
     isAdmin: isAdmin,
     signIn,
+    signUp,
     signOut,
   };
 

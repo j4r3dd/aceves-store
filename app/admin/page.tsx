@@ -19,7 +19,7 @@ export default function AdminDashboard() {
         >
           Upload Images
         </button>
-        
+
         <button
           onClick={() => handleNavigation('/admin/products')}
           className="block text-center bg-black text-white py-3 px-4 rounded hover:bg-gray-800 transition"
@@ -32,6 +32,20 @@ export default function AdminDashboard() {
           className="block text-center bg-black text-white py-3 px-4 rounded hover:bg-gray-800 transition"
         >
           Manage Banners
+        </button>
+
+        <button
+          onClick={() => handleNavigation('/admin/coupons')}
+          className="block text-center bg-black text-white py-3 px-4 rounded hover:bg-gray-800 transition"
+        >
+          Manage Coupons
+        </button>
+
+        <button
+          onClick={() => handleNavigation('/admin/orders')}
+          className="block text-center bg-black text-white py-3 px-4 rounded hover:bg-gray-800 transition"
+        >
+          Manage Orders
         </button>
       </div>
     </div>
