@@ -4,7 +4,7 @@
  */
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
@@ -47,11 +47,7 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [statusFilter]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       const url =
@@ -74,7 +70,11 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, router]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleUpdateStatus = async (
     orderId: string,
@@ -158,41 +158,37 @@ export default function AdminOrdersPage() {
         <div className="flex gap-2">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              statusFilter === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === 'all'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Todos ({orders.length})
           </button>
           <button
             onClick={() => setStatusFilter('paid')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              statusFilter === 'paid'
-                ? 'bg-yellow-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === 'paid'
+              ? 'bg-yellow-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Pagados
           </button>
           <button
             onClick={() => setStatusFilter('shipped')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              statusFilter === 'shipped'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === 'shipped'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Enviados
           </button>
           <button
             onClick={() => setStatusFilter('delivered')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              statusFilter === 'delivered'
-                ? 'bg-green-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${statusFilter === 'delivered'
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             Entregados
           </button>

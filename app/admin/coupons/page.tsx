@@ -4,7 +4,7 @@
  */
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
@@ -42,11 +42,7 @@ export default function AdminCouponsPage() {
     is_active: true,
   });
 
-  useEffect(() => {
-    fetchCoupons();
-  }, []);
-
-  const fetchCoupons = async () => {
+  const fetchCoupons = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/admin/coupons');
@@ -64,7 +60,11 @@ export default function AdminCouponsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    fetchCoupons();
+  }, [fetchCoupons]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -76,10 +76,10 @@ export default function AdminCouponsPage() {
         type === 'checkbox'
           ? checked
           : type === 'number'
-          ? value === ''
-            ? null
-            : parseFloat(value)
-          : value,
+            ? value === ''
+              ? null
+              : parseFloat(value)
+            : value,
     });
   };
 
@@ -423,20 +423,18 @@ export default function AdminCouponsPage() {
           coupons.map((coupon) => (
             <div
               key={coupon.id}
-              className={`bg-white rounded-lg shadow-md p-6 ${
-                !coupon.is_active ? 'opacity-60' : ''
-              }`}
+              className={`bg-white rounded-lg shadow-md p-6 ${!coupon.is_active ? 'opacity-60' : ''
+                }`}
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-xl font-bold">{coupon.code}</h3>
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        coupon.is_active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`px-2 py-1 text-xs rounded-full ${coupon.is_active
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                        }`}
                     >
                       {coupon.is_active ? 'Activo' : 'Inactivo'}
                     </span>
@@ -478,11 +476,10 @@ export default function AdminCouponsPage() {
                 <div className="flex gap-2 ml-4">
                   <button
                     onClick={() => handleToggleActive(coupon.id, coupon.is_active)}
-                    className={`px-3 py-1 text-sm rounded ${
-                      coupon.is_active
-                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                        : 'bg-green-100 text-green-800 hover:bg-green-200'
-                    }`}
+                    className={`px-3 py-1 text-sm rounded ${coupon.is_active
+                      ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                      : 'bg-green-100 text-green-800 hover:bg-green-200'
+                      }`}
                   >
                     {coupon.is_active ? 'Desactivar' : 'Activar'}
                   </button>

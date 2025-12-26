@@ -11,7 +11,7 @@ import { cookies } from 'next/headers';
 
 export const createServerSupabaseClient = async () => {
   const cookieStore = await cookies();
-  return createRouteHandlerClient({ cookies: () => cookieStore });
+  return createRouteHandlerClient({ cookies: () => Promise.resolve(cookieStore) });
 };
 
 // Create a supabase client with service role for admin operations

@@ -38,7 +38,7 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
 
   // Check if user already exists by email (check auth.users via admin API)
   const { data: existingUsers } = await supabase.auth.admin.listUsers();
-  const userExists = existingUsers?.users?.some(u => u.email === data.email);
+  const userExists = existingUsers?.users?.some((u: any) => u.email === data.email);
 
   if (userExists) {
     throw new ApiException(400, 'Ya existe una cuenta con este correo electrónico');
