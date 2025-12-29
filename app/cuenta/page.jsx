@@ -11,23 +11,25 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function AccountDashboard() {
   const router = useRouter();
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, signOut, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth check
+
     if (!isAuthenticated) {
       router.push('/login?redirect=/cuenta');
       return;
     }
 
     fetchUserData();
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, authLoading, router]);
 
   const fetchUserData = async () => {
     try {
-      setLoading(true);
+      setDataLoading(true);
 
       // Fetch user profile
       const profileRes = await fetch('/api/users/profile');
@@ -45,7 +47,7 @@ export default function AccountDashboard() {
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
-      setLoading(false);
+      setDataLoading(false);
     }
   };
 
@@ -54,7 +56,7 @@ export default function AccountDashboard() {
     router.push('/');
   };
 
-  if (loading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="max-w-6xl mx-auto px-6 py-12">
         <p className="text-center text-gray-500">Cargando...</p>
@@ -74,7 +76,7 @@ export default function AccountDashboard() {
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-8">
+      <div className="mb-8">
         {/* Profile Info Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-gray-800">Información Personal</h2>
@@ -106,25 +108,6 @@ export default function AccountDashboard() {
           >
             Editar perfil →
           </Link>
-        </div>
-
-        {/* Stats Card */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">Estadísticas</h2>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total de pedidos:</span>
-              <span className="text-2xl font-bold text-[#092536]">
-                {profile?.total_orders || 0}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total gastado:</span>
-              <span className="text-2xl font-bold text-[#092536]">
-                ${(profile?.total_spent || 0).toLocaleString()} MXN
-              </span>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -190,10 +173,10 @@ export default function AccountDashboard() {
                     </p>
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${order.shipping_status === 'delivered'
-                          ? 'bg-green-100 text-green-800'
-                          : order.shipping_status === 'shipped'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-green-100 text-green-800'
+                        : order.shipping_status === 'shipped'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-yellow-100 text-yellow-800'
                         }`}
                     >
                       {order.shipping_status === 'delivered'

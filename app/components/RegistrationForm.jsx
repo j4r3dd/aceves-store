@@ -55,15 +55,16 @@ export default function RegistrationForm({ onSuccess, redirectTo = '/cuenta' }) 
 
       // Success!
       if (onSuccess) {
+        setIsLoading(false);
         onSuccess();
       } else {
+        setIsLoading(false); // Stop loading before pushing
         router.push(redirectTo);
       }
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.message || 'Error al crear la cuenta. Intenta nuevamente.');
-    } finally {
       setIsLoading(false);
+      setError(err.message || 'Error al crear la cuenta. Intenta nuevamente.');
     }
   };
 

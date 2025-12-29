@@ -45,12 +45,14 @@ export default function AdminCouponsPage() {
   const fetchCoupons = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/admin/coupons');
+      const response = await fetch('/api/admin/coupons', {
+        credentials: 'include'
+      });
 
       if (response.ok) {
         const data = await response.json();
         setCoupons(data);
-      } else if (response.status === 401) {
+      } else if (response.status === 401 || response.status === 403) {
         toast.error('No autorizado. Inicia sesión como administrador.');
         router.push('/admin');
       }
@@ -117,6 +119,7 @@ export default function AdminCouponsPage() {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -157,6 +160,7 @@ export default function AdminCouponsPage() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_active: !currentStatus }),
+        credentials: 'include'
       });
 
       if (response.ok) {
@@ -179,6 +183,7 @@ export default function AdminCouponsPage() {
     try {
       const response = await fetch(`/api/admin/coupons/${id}`, {
         method: 'DELETE',
+        credentials: 'include'
       });
 
       if (response.ok) {

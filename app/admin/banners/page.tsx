@@ -1,20 +1,54 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabase';
+import { toast } from 'react-toastify';
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = useState([]);
   const [newBanner, setNewBanner] = useState({ image_url: '', link: '', order: 0 });
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchBanners = async () => {
-    const { data } = await supabase.from('banners').select('*').order('order');
-    setBanners(data || []);
+    try {
+      const response = await fetch('/api/banners', {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch banners');
+      }
+
+      const data = await response.json();
+      setBanners(data || []);
+    } catch (error) {
+      console.error('Error fetching banners:', error);
+      toast.error('Error al cargar banners');
+    }
   };
 
   const handleAddBanner = async () => {
-    await supabase.from('banners').insert([newBanner]);
-    setNewBanner({ image_url: '', link: '', order: 0 });
-    fetchBanners();
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/banners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBanner),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add banner');
+      }
+
+      toast.success('Banner agregado exitosamente');
+      setNewBanner({ image_url: '', link: '', order: 0 });
+      fetchBanners();
+    } catch (error) {
+      console.error('Error adding banner:', error);
+      toast.error('Error al agregar banner');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBannerChange = (index, field, value) => {
@@ -24,17 +58,34 @@ export default function AdminBannersPage() {
   };
 
   const handleSaveChanges = async () => {
-    const updates = await Promise.all(
-      banners.map((b) =>
-        supabase.from('banners').update({
-          image_url: b.image_url,
-          link: b.link,
-          order: b.order,
-        }).eq('id', b.id)
-      )
-    );
-    alert('✅ Changes saved!');
-    fetchBanners();
+    setIsLoading(true);
+    try {
+      await Promise.all(
+        banners.map(async (b) => {
+          const response = await fetch(`/api/banners/${b.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image_url: b.image_url,
+              link: b.link,
+              order: b.order,
+            }),
+            credentials: 'include'
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to update banner ${b.id}`);
+          }
+        })
+      );
+      toast.success('Cambios guardados exitosamente');
+      fetchBanners();
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      toast.error('Error al guardar cambios');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -68,9 +119,12 @@ export default function AdminBannersPage() {
       />
       <button
         onClick={handleAddBanner}
-        className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+        disabled={isLoading}
+        className={`px-4 py-2 bg-black text-white rounded ${
+          isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'
+        }`}
       >
-        ➕ Add Banner
+        {isLoading ? 'Agregando...' : '➕ Add Banner'}
       </button>
 
       <hr className="border-gray-700 my-4" />
@@ -101,9 +155,12 @@ export default function AdminBannersPage() {
 
       <button
         onClick={handleSaveChanges}
-        className="mt-4 px-6 py-2 bg-purple-700 hover:bg-purple-600 text-white rounded"
+        disabled={isLoading}
+        className={`mt-4 px-6 py-2 bg-purple-700 text-white rounded ${
+          isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-600'
+        }`}
       >
-        💾 Save Changes
+        {isLoading ? 'Guardando...' : '💾 Save Changes'}
       </button>
     </div>
   );

@@ -60,7 +60,7 @@ export default function CheckoutPage() {
   // 🔧 NEW: Use API route for stock updates (bypasses RLS with service key)
   const updateStock = async (cartItems) => {
     console.log('🔄 Starting stock update via API for:', cartItems);
-    
+
     try {
       const response = await fetch('/api/update-stock', {
         method: 'POST',
@@ -69,17 +69,17 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({ cartItems }),
       });
-      
+
       const result = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to update stock');
       }
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Stock update was not successful');
       }
-      
+
       console.log('✅ Stock updated successfully via API');
       return true;
     } catch (error) {
@@ -170,21 +170,25 @@ export default function CheckoutPage() {
         }),
       };
 
-      console.log('🧾 Saving order to database:', orderInsert);
+      console.log('🧾 Saving order to database via API:', orderInsert);
 
-      const { data, error } = await supabase
-        .from('orders')
-        .insert([orderInsert])
-        .select()
-        .single();
+      const response = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderInsert),
+      });
 
-      if (error) {
-        console.error('❌ Error saving order to database:', error);
-        throw new Error('No se pudo guardar la orden en la base de datos');
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error('❌ Error saving order to database (API):', result.error);
+        throw new Error(result.error || 'No se pudo guardar la orden en la base de datos');
       }
 
-      console.log('✅ Order saved to database:', data);
-      return data;
+      console.log('✅ Order saved to database:', result);
+      return result;
     } catch (error) {
       console.error('❌ Error in saveOrderToDatabase:', error);
       throw error;
@@ -351,6 +355,11 @@ export default function CheckoutPage() {
           },
         }).render(paypalRef.current);
       }
+    };
+
+    script.onerror = () => {
+      console.error('❌ PayPal SDK failed to load');
+      toast.error('No se pudo cargar PayPal. Por favor revisa tu conexión o desactiva bloqueadores de anuncios.');
     };
 
     document.body.appendChild(script);

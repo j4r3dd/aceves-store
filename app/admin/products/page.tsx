@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../../../lib/supabase';
 import Image from 'next/image';
 import { Plus, Trash2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 // Category options
 const CATEGORIES = [
@@ -19,7 +19,6 @@ const DEFAULT_SIZES = ['Unitalla'];
 export default function ProductManagerPage() {
   const [addMessage, setAddMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionStatus, setSessionStatus] = useState('checking');
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -40,43 +39,27 @@ export default function ProductManagerPage() {
   const fetchProducts = async () => {
     setLoadingProducts(true);
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('name');
+      const response = await fetch('/api/products', {
+        credentials: 'include'
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+
+      const data = await response.json();
       setProducts(data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
+      toast.error('Error al cargar productos');
     } finally {
       setLoadingProducts(false);
     }
   };
 
-  // Check user session when component loads
+  // Load products when component loads
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log("Current session:", session);
-
-        if (!session) {
-          console.warn("No active session found!");
-          setSessionStatus('unauthenticated');
-          setAddMessage("⚠️ You need to be logged in to add products.");
-        } else {
-          setSessionStatus('authenticated');
-          console.log("Authenticated as:", session.user.email);
-          fetchProducts();
-        }
-      } catch (error) {
-        console.error("Session check error:", error);
-        setSessionStatus('error');
-      }
-    };
-
-    checkSession();
+    fetchProducts();
   }, []);
 
   // Helper: Get suggested sizes based on category
@@ -139,15 +122,6 @@ export default function ProductManagerPage() {
         throw new Error('All sizes must have a name');
       }
 
-      // Get current authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error('You must be logged in to add products');
-      }
-
-      console.log("Current user:", user.id);
-
       // Generate a more reliable ID
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 8);
@@ -177,26 +151,22 @@ export default function ProductManagerPage() {
 
       console.log("Attempting to insert product:", newEntry);
 
-      // Insert the product with error handling
-      const { error: insertError } = await supabase
-        .from('products')
-        .insert(newEntry);
+      // Insert the product via API
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newEntry),
+        credentials: 'include'
+      });
 
-      if (insertError) {
-        console.error("Supabase insert error:", insertError);
-
-        // Handle specific database errors
-        if (insertError.code === '23505') {
-          throw new Error('A product with this ID already exists');
-        } else if (insertError.code === '23503') {
-          throw new Error('User authentication error');
-        } else {
-          throw new Error(`Database error: ${insertError.message}`);
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add product');
       }
 
       console.log("Product added successfully!");
-      setAddMessage(`✅ Product "${newEntry.name}" added to Supabase!`);
+      setAddMessage(`✅ Product "${newEntry.name}" added successfully!`);
+      toast.success('Producto agregado exitosamente');
       fetchProducts();
 
       // Reset form
@@ -258,14 +228,20 @@ export default function ProductManagerPage() {
         envio_cruzado: Boolean(editingProduct.envio_cruzado),
       };
 
-      const { error } = await supabase
-        .from('products')
-        .update(updates)
-        .eq('id', editingProduct.id);
+      const response = await fetch(`/api/products/${editingProduct.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+        credentials: 'include'
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update product');
+      }
 
       setAddMessage(`✅ Product "${editingProduct.name}" updated successfully!`);
+      toast.success('Producto actualizado exitosamente');
       setEditingProduct(null);
       fetchProducts();
     } catch (err) {
@@ -280,14 +256,18 @@ export default function ProductManagerPage() {
   const handleDelete = async (productId) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete product');
+      }
 
       setAddMessage(`✅ Product deleted successfully!`);
+      toast.success('Producto eliminado exitosamente');
       setDeleteConfirm(null);
       fetchProducts();
     } catch (err) {
@@ -301,12 +281,6 @@ export default function ProductManagerPage() {
   return (
     <div className="min-h-screen p-8 bg-white text-black flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-6">🛍️ Manage Products</h1>
-
-      {sessionStatus === 'unauthenticated' && (
-        <div className="w-full max-w-2xl p-4 mb-6 bg-yellow-100 text-yellow-800 rounded-md">
-          You are not logged in. Please log in to manage products.
-        </div>
-      )}
 
       <div className="w-full max-w-2xl">
         <h2 className="text-xl font-semibold mb-4">➕ Add New Product</h2>
@@ -472,9 +446,9 @@ export default function ProductManagerPage() {
         />
         <button
           onClick={handleAddProduct}
-          disabled={isLoading || sessionStatus !== 'authenticated'}
+          disabled={isLoading}
           className={`w-full bg-black text-white py-2 px-6 rounded ${
-            (isLoading || sessionStatus !== 'authenticated') ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'
+            isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'
           }`}
         >
           {isLoading ? 'Adding...' : 'Add Product'}

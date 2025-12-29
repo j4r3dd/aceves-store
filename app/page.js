@@ -4,8 +4,7 @@ import PromoBanner from './components/PromoBanner';
 import BannerSection from './components/BannerSection';
 import FeaturedProducts from './components/FeaturedProducts';
 import Footer from './components/Footer';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient } from '../lib/supabase-server';
 import Script from 'next/script';
 
 // Organization structured data component for SEO
@@ -62,9 +61,7 @@ function WebsiteStructuredData() {
 }
 
 export default async function Home() {
-  // Properly await cookies in Next.js 13+
-  const cookieStore = await cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  const supabase = await createServerSupabaseClient();
 
   const { data: products = [] } = await supabase
     .from('products')

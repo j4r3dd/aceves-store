@@ -1,7 +1,6 @@
 // app/promociones/page.jsx
 import Link from 'next/link';
-import { cookies } from 'next/headers';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createServerSupabaseClient } from '../../lib/supabase-server';
 import PageWrapper from '../components/PageWrapper';
 import CountdownTimer from '../components/CountdownTimer';
 import Script from 'next/script';
@@ -51,8 +50,7 @@ function PromotionsSchema({ products }) {
 }
 
 export default async function PromocionesPage() {
-  const cookieStore = cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  const supabase = await createServerSupabaseClient();
 
   let products = [];
   let error = null;

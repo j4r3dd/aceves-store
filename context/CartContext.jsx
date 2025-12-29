@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
-import { toast } from 'react-toastify'; 
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { supabase } from '../lib/supabase';
 
@@ -20,69 +20,96 @@ export function CartProvider({ children }) {
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
+    console.log('💾 Saving cart to localStorage:', cart);
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
   // Fixed getAvailableStock function - add this to your CartContext
 
   // Helper function to get available stock for a product/size
-  const getAvailableStock = async (productId, selectedSize = null) => {
-    try {
-      console.log(`🔍 Checking stock for product ${productId}, size: ${selectedSize}`);
-      
-      const { data: product, error } = await supabase
-        .from('products')
-        .select('*') // Select all fields to see the full product structure
-        .eq('id', productId)
-        .single();
+  // Helper function to get available stock for a product/size
+  // Helper function to get available stock for a product/size
+  // Helper function to get available stock for a product/size
+  const getAvailableStock = async (productId, selectedSize = null, fallbackProduct = null) => {
+    const MAX_RETRIES = 3;
+    const TIMEOUT_MS = 10000; // 10 seconds
 
-      if (error) {
-        console.error('❌ Error fetching product stock:', error);
-        return 0;
-      }
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        console.log(`🔍 Checking stock via API for product ${productId}, size: ${selectedSize} (Attempt ${attempt}/${MAX_RETRIES})`);
 
-      if (!product) {
-        console.error('❌ Product not found:', productId);
-        return 0;
-      }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-      console.log('📦 Product data:', product);
-
-      // If the product has a selectedSize, check the sizes array
-      if (selectedSize && product.sizes && Array.isArray(product.sizes)) {
-        console.log('🏷️ Product has sizes, looking for size:', selectedSize);
-        console.log('🏷️ Available sizes:', product.sizes);
-        
-        const sizeData = product.sizes.find(s => s.size === selectedSize);
-        
-        if (sizeData) {
-          const stock = parseInt(sizeData.stock) || 0;
-          console.log(`📊 Stock for size ${selectedSize}:`, stock);
-          return stock;
-        } else {
-          console.warn(`❌ Size ${selectedSize} not found in product sizes`);
-          return 0;
+        let url = `/api/products/stock?id=${productId}`;
+        if (selectedSize) {
+          url += `&size=${encodeURIComponent(selectedSize)}`;
         }
-      } 
-      // If no selectedSize or no sizes array, check general stock
-      else if (product.stock !== undefined) {
-        const stock = parseInt(product.stock) || 0;
-        console.log('📊 General product stock:', stock);
-        return stock;
+
+        const response = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`❌ API Stock Check failed: ${response.status} ${response.statusText}`, errorText);
+          // If 404, product truly gone
+          if (response.status === 404) return 0;
+          // If 500 or other, maybe retry
+          if (attempt === MAX_RETRIES) break;
+          continue;
+        }
+
+        const data = await response.json();
+        console.log(`📊 API Stock response:`, data);
+
+        return data.stock;
+
+      } catch (error) {
+        console.error(`❌ Exception checking stock attempt ${attempt}:`, error);
+        if (error.name === 'AbortError') {
+          console.warn('⏱️ API Request timed out');
+        }
+        if (attempt === MAX_RETRIES) break;
       }
-      // If product has sizes but no selectedSize was provided, return 0
-      else if (product.sizes && Array.isArray(product.sizes)) {
-        console.warn('❌ Product has sizes but no size was selected');
+    }
+
+    // Fallback logic
+    if (fallbackProduct) {
+      console.warn('⚠️ All stock checks failed. Using fallback product data from client.');
+      return extractStockFromProduct(fallbackProduct, selectedSize);
+    }
+
+    return 0;
+  };
+
+  // Helper to extract stock regardless of source
+  const extractStockFromProduct = (product, selectedSize) => {
+    if (selectedSize && product.sizes && Array.isArray(product.sizes)) {
+      const sizeData = product.sizes.find(s => s.size === selectedSize);
+      if (sizeData) {
+        const stock = parseInt(sizeData.stock) || 0;
+        console.log(`📊 Stock for size ${selectedSize}:`, stock);
+        return stock;
+      } else {
+        console.warn(`❌ Size ${selectedSize} not found in product sizes`);
         return 0;
       }
-      // Fallback: assume stock is available if no stock field is found
-      else {
-        console.warn('⚠️ No stock information found, assuming available');
-        return 999; // Assume high stock if no stock management
-      }
-    } catch (error) {
-      console.error('❌ Exception checking stock:', error);
+    } else if (product.stock !== undefined) {
+      const stock = parseInt(product.stock) || 0;
+      console.log('📊 General product stock:', stock);
+      return stock;
+    } else if (product.sizes && Array.isArray(product.sizes)) {
+      console.warn('❌ Product has sizes but no size was selected');
       return 0;
+    } else {
+      console.warn('⚠️ No stock information found, assuming available');
+      return 999;
     }
   };
 
@@ -91,9 +118,9 @@ export function CartProvider({ children }) {
   const increaseQuantity = async (id, selectedSize) => {
     // First, check available stock
     const availableStock = await getAvailableStock(id, selectedSize);
-    
+
     // Get current quantity in cart
-    const currentItem = cart.find(item => 
+    const currentItem = cart.find(item =>
       item.id === id && item.selectedSize === selectedSize
     );
     const currentQuantity = currentItem ? currentItem.quantity : 0;
@@ -130,13 +157,20 @@ export function CartProvider({ children }) {
   };
 
   const addToCart = async (product) => {
+    console.log('🛒 addToCart called with:', { id: product.id, selectedSize: product.selectedSize });
+
     // Check available stock before adding
-    const availableStock = await getAvailableStock(product.id, product.selectedSize);
-    
+    // Pass the product as fallback
+    const availableStock = await getAvailableStock(product.id, product.selectedSize, product);
+    console.log('📊 Available stock:', availableStock);
+
     if (availableStock <= 0) {
+      console.log('❌ Stock is 0 or less, showing error');
       toast.error('❌ Producto agotado');
       return;
     }
+
+    console.log('✅ Stock available, proceeding to add to cart');
 
     let wasUpdated = false;
     let newQuantity = 1;
@@ -148,7 +182,7 @@ export function CartProvider({ children }) {
 
       if (existing) {
         newQuantity = existing.quantity + 1;
-        
+
         // Check if new quantity exceeds stock
         if (newQuantity > availableStock) {
           toast.error(`❌ Solo hay ${availableStock} disponibles de este producto`);
@@ -171,6 +205,8 @@ export function CartProvider({ children }) {
 
       return [...prev, { ...product, quantity: 1 }];
     });
+
+    console.log('🔄 Cart state updated, wasUpdated:', wasUpdated);
 
     if (wasUpdated) {
       toast.success('Cantidad actualizada en el carrito 🛒');
@@ -201,7 +237,7 @@ export function CartProvider({ children }) {
 
     for (const item of cart) {
       const availableStock = await getAvailableStock(item.id, item.selectedSize);
-      
+
       if (item.quantity > availableStock) {
         validationErrors.push({
           item,

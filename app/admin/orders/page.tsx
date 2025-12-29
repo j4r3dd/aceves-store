@@ -55,12 +55,14 @@ export default function AdminOrdersPage() {
           ? '/api/admin/orders'
           : `/api/admin/orders?status=${statusFilter}`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        credentials: 'include'
+      });
 
       if (response.ok) {
         const data = await response.json();
         setOrders(data);
-      } else if (response.status === 401) {
+      } else if (response.status === 401 || response.status === 403) {
         toast.error('No autorizado. Inicia sesión como administrador.');
         router.push('/admin');
       }
@@ -89,6 +91,7 @@ export default function AdminOrdersPage() {
           status: newStatus,
           tracking_number: trackingNumber || undefined,
         }),
+        credentials: 'include'
       });
 
       if (response.ok) {

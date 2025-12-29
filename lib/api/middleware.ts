@@ -7,7 +7,7 @@ import { validateInput } from './validation';
 
 export type NextApiHandler = (
   req: NextRequest,
-  context: { params?: Record<string, string | string[]> }
+  context: { params?: Record<string, string | string[]> | Promise<Record<string, string>> }
 ) => Promise<NextResponse> | NextResponse;
 
 // Export as standalone function (this is what your API routes are importing)
@@ -79,7 +79,7 @@ export function withAdmin(handler: NextApiHandler): NextApiHandler {
 
 export function withValidation<T>(
   schema: any,
-  handler: (req: NextRequest & { validatedData: T }, context: { params?: Record<string, string | string[]> }) => Promise<NextResponse> | NextResponse
+  handler: (req: NextRequest & { validatedData: T }, context: { params?: Record<string, string | string[]> | Promise<Record<string, string>> }) => Promise<NextResponse> | NextResponse
 ): NextApiHandler {
   return async (req, context) => {
     let body;

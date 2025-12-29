@@ -57,14 +57,27 @@ const service = SupabaseService.getInstance();
 
 /**
  * Get all orders for a specific user
+ * Fetches both orders with user_id AND guest orders by email
  */
 export const getUserOrders = async (userId: string): Promise<Order[]> => {
   const supabase = createServiceRoleClient();
 
+  // First, get the user's email from auth
+  const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+
+  if (userError || !userData) {
+    throw new ApiException(404, 'Usuario no encontrado');
+  }
+
+  const userEmail = userData.user.email;
+
+  // Fetch orders that either:
+  // 1. Have the user_id (orders placed after creating account)
+  // 2. Have the user's email but NULL user_id (guest orders)
   const { data, error } = await supabase
     .from('orders')
     .select('*')
-    .eq('user_id', userId)
+    .or(`user_id.eq.${userId},and(customer_email.eq.${userEmail},user_id.is.null)`)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -89,27 +102,36 @@ export const getOrderById = async (orderId: string): Promise<Order> => {
 
 /**
  * Get all orders (admin only)
+ * Uses service role client to bypass RLS
  */
 export const getAllOrders = async (filters?: {
   status?: string;
   limit?: number;
   offset?: number;
 }): Promise<Order[]> => {
-  const queryOptions: any = {
-    order: { column: 'created_at', ascending: false },
-  };
+  // Use service role client for admin operations
+  const supabase = createServiceRoleClient();
+
+  let query = supabase
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   if (filters?.status) {
-    queryOptions.filter = { shipping_status: filters.status };
+    query = query.eq('shipping_status', filters.status);
   }
 
   if (filters?.limit) {
-    queryOptions.limit = filters.limit;
+    query = query.limit(filters.limit);
   }
 
-  const orders = await service.getTable<Order>('orders', queryOptions);
+  const { data, error } = await query;
 
-  return orders;
+  if (error) {
+    throw new ApiException(500, error.message, error);
+  }
+
+  return data as Order[];
 };
 
 /**
@@ -194,7 +216,8 @@ export const updateOrderStatus = async (
   status: 'paid' | 'shipped' | 'delivered',
   trackingNumber?: string
 ): Promise<Order> => {
-  const supabase = await createServerSupabaseClient();
+  // Use service role client for admin operations
+  const supabase = createServiceRoleClient();
 
   const updates: Partial<Order> = {
     shipping_status: status,
@@ -211,11 +234,21 @@ export const updateOrderStatus = async (
     updates.delivered_at = new Date().toISOString();
   }
 
-  const order = await service.updateRecord<Order>('orders', orderId, updates);
+  const { data, error } = await supabase
+    .from('orders')
+    .update(updates)
+    .eq('id', orderId)
+    .select()
+    .single();
 
-  if (!order) {
-    throw new ApiException(404, 'Pedido no encontrado');
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new ApiException(404, 'Pedido no encontrado');
+    }
+    throw new ApiException(500, error.message, error);
   }
+
+  const order = data as Order;
 
   console.log('✅ Order status updated:', orderId, '→', status);
 

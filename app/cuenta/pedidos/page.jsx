@@ -27,10 +27,22 @@ export default function OrderHistoryPage() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/orders');
+      const response = await fetch('/api/orders', {
+        credentials: 'include',
+        cache: 'no-store' // Force fresh data
+      });
 
       if (response.ok) {
         const data = await response.json();
+        console.log('📦 Orders data received:', data);
+        // Log tracking numbers specifically
+        data.forEach(order => {
+          if (order.tracking_number) {
+            console.log(`✅ Order ${order.id.substring(0, 8)} has tracking:`, order.tracking_number);
+          } else {
+            console.log(`❌ Order ${order.id.substring(0, 8)} NO tracking number`);
+          }
+        });
         setOrders(data);
       } else {
         console.error('Error fetching orders');
@@ -86,7 +98,16 @@ export default function OrderHistoryPage() {
         >
           ← Volver a Mi Cuenta
         </Link>
-        <h1 className="text-3xl font-bold text-gray-800">Historial de Pedidos</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-800">Historial de Pedidos</h1>
+          <button
+            onClick={fetchOrders}
+            disabled={loading}
+            className="px-4 py-2 bg-[#092536] text-white rounded hover:bg-[#0a3a52] disabled:opacity-50 text-sm"
+          >
+            {loading ? 'Actualizando...' : '🔄 Actualizar'}
+          </button>
+        </div>
       </div>
 
       {/* Orders List */}
@@ -194,15 +215,21 @@ export default function OrderHistoryPage() {
                     <p>{order.customer_phone}</p>
                   </div>
 
-                  {/* Tracking Number */}
-                  {order.tracking_number && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <p className="text-sm font-medium text-gray-800 mb-1">
-                        Número de Rastreo:
+                  {/* Tracking Number - Always show for shipped/delivered orders */}
+                  {(order.shipping_status === 'shipped' || order.shipping_status === 'delivered') && (
+                    <div className="mt-4 pt-4 border-t border-gray-200 bg-blue-50 p-3 rounded">
+                      <p className="text-sm font-bold text-gray-800 mb-2">
+                        📦 Número de Rastreo:
                       </p>
-                      <p className="text-sm text-blue-600 font-mono">
-                        {order.tracking_number}
-                      </p>
+                      {order.tracking_number ? (
+                        <p className="text-base text-blue-600 font-mono font-bold">
+                          {order.tracking_number}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">
+                          Pendiente (se actualizará pronto)
+                        </p>
+                      )}
                     </div>
                   )}
 

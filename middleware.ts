@@ -1,8 +1,35 @@
-
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+    // Create a response object - we'll update it with cookies
+    let supabaseResponse = NextResponse.next({
+        request,
+    });
+
+    // Create Supabase client with cookie handling
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return request.cookies.getAll();
+                },
+                setAll(cookiesToSet) {
+                    cookiesToSet.forEach(({ name, value, options }) => {
+                        supabaseResponse.cookies.set(name, value, options);
+                    });
+                },
+            },
+        }
+    );
+
+    // IMPORTANT: This triggers the cookie refresh
+    // The refreshed cookies are set on supabaseResponse
+    await supabase.auth.getUser();
+
     // Generate a random nonce for the CSP (optional but good practice if we want to tighten it later)
     // For now we rely on unsafe-inline/eval to fix the immediate PayPal issue
     const nonce = crypto.randomUUID();
@@ -19,7 +46,7 @@ export function middleware(request: NextRequest) {
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://analytics.tiktok.com https://*.tiktok.com;
+    connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://analytics.tiktok.com https://*.tiktok.com https://*.supabase.co;
     frame-src 'self' https://*.paypal.com https://*.paypalobjects.com;
   `;
 
@@ -28,35 +55,23 @@ export function middleware(request: NextRequest) {
         .replace(/\s{2,}/g, ' ')
         .trim();
 
-    // Create response
-    const requestHeaders = new Headers(request.headers);
-    requestHeaders.set('x-nonce', nonce);
-    requestHeaders.set('Content-Security-Policy', contentSecurityPolicyHeaderValue);
+    // Set headers on the supabase response (which has updated cookies)
+    supabaseResponse.headers.set('x-nonce', nonce);
+    supabaseResponse.headers.set('Content-Security-Policy', contentSecurityPolicyHeaderValue);
+    supabaseResponse.headers.set('x-pathname', request.nextUrl.pathname);
 
-    // Also pass x-pathname for layout.js usage
-    requestHeaders.set('x-pathname', request.nextUrl.pathname);
-
-    const response = NextResponse.next({
-        request: {
-            headers: requestHeaders,
-        },
-    });
-
-    // Set the CSP header on the response so the browser sees it
-    response.headers.set('Content-Security-Policy', contentSecurityPolicyHeaderValue);
-
-    return response;
+    return supabaseResponse;
 }
 
 export const config = {
     matcher: [
         /*
          * Match all request paths except for the ones starting with:
-         * - api (API routes)
          * - _next/static (static files)
          * - _next/image (image optimization files)
          * - favicon.ico (favicon file)
+         * Note: We now include API routes to refresh Supabase sessions
          */
-        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+        '/((?!_next/static|_next/image|favicon.ico).*)',
     ],
 };

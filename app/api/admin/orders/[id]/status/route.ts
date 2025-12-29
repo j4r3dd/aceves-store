@@ -10,10 +10,16 @@ import { withErrorHandling } from '../../../../../../lib/api/middleware';
 import { successResponse } from '../../../../../../lib/api/utils';
 
 export const PUT = withErrorHandling(
-  async (req: NextRequest, { params }: { params: { id: string } }) => {
+  async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
     await requireAdmin();
 
-    const { status, trackingNumber } = await req.json();
+    const body = await req.json();
+    const { status, trackingNumber, tracking_number } = body;
+
+    // Support both camelCase and snake_case for backwards compatibility
+    const finalTrackingNumber = trackingNumber || tracking_number;
+
+    console.log('📦 Updating order status:', { status, trackingNumber: finalTrackingNumber });
 
     if (!status || !['paid', 'shipped', 'delivered'].includes(status)) {
       return successResponse(
@@ -22,7 +28,12 @@ export const PUT = withErrorHandling(
       );
     }
 
-    const order = await updateOrderStatus(params.id, status, trackingNumber);
+    // Await params in Next.js 15
+    const { id } = await params;
+    const order = await updateOrderStatus(id, status, finalTrackingNumber);
+
+    console.log('✅ Order updated successfully. Tracking number saved:', order.tracking_number);
+
     return successResponse(order);
   }
 );

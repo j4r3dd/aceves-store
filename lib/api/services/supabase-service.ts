@@ -1,7 +1,7 @@
 // Let's create a unified API client service
 // lib/api/services/supabase-service.ts
 
-import { createServerSupabaseClient } from '../../supabase-server';
+import { createServerSupabaseClient, createServiceRoleClient } from '../../supabase-server';
 import { ApiException } from '../utils';
 
 export class SupabaseService {
@@ -18,6 +18,10 @@ export class SupabaseService {
 
   public async getClient() {
     return await createServerSupabaseClient();
+  }
+
+  public getAdminClient() {
+    return createServiceRoleClient();
   }
 
   public async getTable<T>(table: string, query?: any): Promise<T[]> {

@@ -1,13 +1,9 @@
 // Fixed version of app/producto/[id]/page.jsx
 import ProductoView from '../ProductoView';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import Script from 'next/script';
+import { createServerSupabaseClient } from '../../../lib/supabase-server';
 
 export async function generateMetadata({ params }) {
-  // We need to use this pattern for cookies in Next.js 13+
-  const cookieStore = await cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  const supabase = await createServerSupabaseClient();
   
   // Fix: Properly await params first
   const resolvedParams = await params;
@@ -102,7 +98,7 @@ function StructuredData({ product }) {
   };
 
   return (
-    <Script
+    <script
       id={`structured-data-${product.id}`}
       type="application/ld+json"
       dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -111,9 +107,7 @@ function StructuredData({ product }) {
 }
 
 export default async function ProductoPage({ params }) {
-  // Use the correct pattern for cookies in Next.js
-  const cookieStore = await cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  const supabase = await createServerSupabaseClient();
   
   // Fix: Properly await params first
   const resolvedParams = await params;

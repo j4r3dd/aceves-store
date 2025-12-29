@@ -56,6 +56,17 @@ Creates database triggers and utility functions:
 
 ---
 
+#### 5. `005_products_public_access.sql`
+Sets up RLS policies for public catalog access:
+- Products table - publicly readable, admin-only write
+- Banners table - publicly readable when active, admin-only write
+
+**Expected result**: Products and banners accessible to anonymous users
+
+**⚠️ IMPORTANT**: Run this migration to fix cart functionality! Without it, anonymous users cannot view products.
+
+---
+
 ## Verification
 
 After running all migrations, verify:

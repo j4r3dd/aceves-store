@@ -53,7 +53,7 @@ function AdminLoginForm() {
 }
 
 export default function AdminLayout({ children }) {
-  const { isAuthenticated, loading, user, signOut } = useAuth();
+  const { isAuthenticated, loading, user, signOut, isAdmin } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -89,6 +89,30 @@ export default function AdminLayout({ children }) {
       <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white text-black">
         <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
         <AdminLoginForm />
+      </div>
+    );
+  }
+
+  // Check if user has admin role
+  if (!isAdmin()) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-white text-black">
+        <h1 className="text-2xl font-bold mb-4 text-red-600">Access Denied</h1>
+        <p className="mb-4 text-center">You don&apos;t have permission to access the admin panel.</p>
+        <div className="flex gap-4">
+          <button
+            onClick={() => router.push('/')}
+            className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800"
+          >
+            Go to Home
+          </button>
+          <button
+            onClick={handleLogout}
+            className="bg-gray-600 text-white px-6 py-2 rounded hover:bg-gray-700"
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
     );
   }

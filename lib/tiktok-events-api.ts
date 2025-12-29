@@ -37,36 +37,37 @@ class TikTokEventsAPI {
   private apiEndpoint: string;
 
   constructor() {
-    this.accessToken = process.env.TIKTOK_ACCESS_TOKEN!;
-    this.pixelId = process.env.TIKTOK_PIXEL_ID!;
-    this.apiEndpoint = process.env.TIKTOK_API_ENDPOINT!;
-    
+    this.accessToken = process.env.TIKTOK_ACCESS_TOKEN || '';
+    this.pixelId = process.env.TIKTOK_PIXEL_ID || '';
+    this.apiEndpoint = process.env.TIKTOK_API_ENDPOINT || 'https://business-api.tiktok.com/open_api/v1.3/pixel/track/';
+
     // Validate that required env vars are present
-    if (!this.accessToken || !this.pixelId || !this.apiEndpoint) {
-      throw new Error('Missing required TikTok Events API environment variables');
+    if (!this.accessToken || !this.pixelId) {
+      console.warn('⚠️ TikTok Events API: Missing environment variables (TIKTOK_ACCESS_TOKEN or TIKTOK_PIXEL_ID). Server-side tracking will be disabled.');
     }
   }
 
- // Fixed sendEvent method for lib/tiktok-events-api.ts
+  // Fixed sendEvent method for lib/tiktok-events-api.ts
   async sendEvent(eventName: string, eventData: EventData) {
+    if (!this.accessToken || !this.pixelId) {
+      console.warn('⚠️ TikTok Events API: Skipping event (missing configuration)', eventName);
+      return { skipped: true };
+    }
+
     try {
-      console.log('🔍 Debug - Access Token exists:', !!this.accessToken);
-      console.log('🔍 Debug - Pixel ID:', this.pixelId);
-      console.log('🔍 Debug - API Endpoint:', this.apiEndpoint);
+      console.log('🔍 Debug - Sending TikTok Event:', eventName);
 
       const payload = {
-        event_source: "web",                    // Changed from pixel_code
-        event_source_id: this.pixelId,         // Your pixel code goes here
+        event_source: "web",
+        event_source_id: this.pixelId,
         data: [{
           event: eventName,
-          event_time: Math.floor(Date.now() / 1000), // Changed from timestamp
-          event_id: `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`, // Optional but recommended
+          event_time: Math.floor(Date.now() / 1000),
+          event_id: `${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
           user: eventData.user || {},
           properties: eventData.properties || {}
         }]
       };
-
-      console.log('📤 Sending payload:', JSON.stringify(payload, null, 2));
 
       const response = await fetch(this.apiEndpoint, {
         method: 'POST',
@@ -78,19 +79,19 @@ class TikTokEventsAPI {
       });
 
       const result = await response.json();
-      console.log('📥 TikTok API Response:', result);
-      
+
       if (!response.ok) {
-        console.error('❌ Response status:', response.status);
-        console.error('❌ Response headers:', Object.fromEntries(response.headers.entries()));
-        throw new Error(`TikTok API Error: ${result.message || response.statusText}`);
+        console.error('❌ TikTok API Error Response:', result);
+        // Don't throw, just log. We don't want to break the user flow for tracking.
+        return { error: result.message || response.statusText };
       }
 
       console.log('✅ TikTok Event sent successfully:', eventName);
       return result;
     } catch (error) {
       console.error('❌ Error sending TikTok event:', error);
-      throw error;
+      // Suppress error
+      return { error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 

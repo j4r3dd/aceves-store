@@ -9,13 +9,25 @@ import { useAuth } from '../../context/AuthContext';
 
 export default function LoginForm({ onSuccess, redirectTo = '/cuenta' }) {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Automatically redirect if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsLoading(false);
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push(redirectTo);
+      }
+    }
+  }, [isAuthenticated, onSuccess, redirectTo, router]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,15 +44,16 @@ export default function LoginForm({ onSuccess, redirectTo = '/cuenta' }) {
 
       // Success!
       if (onSuccess) {
+        setIsLoading(false);
         onSuccess();
       } else {
+        setIsLoading(false); // Stop loading before pushing
         router.push(redirectTo);
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('Correo o contraseña incorrectos. Verifica tus datos e intenta nuevamente.');
-    } finally {
       setIsLoading(false);
+      setError('Correo o contraseña incorrectos. Verifica tus datos e intenta nuevamente.');
     }
   };
 

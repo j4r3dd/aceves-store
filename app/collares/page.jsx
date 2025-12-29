@@ -1,7 +1,6 @@
 // app/collares/page.jsx
 import Link from 'next/link';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createServerSupabaseClient } from '../../lib/supabase-server';
 import PageWrapper from '../components/PageWrapper';
 import ExpandableSection from '../components/ExpandableSection';
 import Script from 'next/script';
@@ -61,9 +60,7 @@ function CollaresSchema() {
 }
 
 export default async function CollaresPage() {
-  // Use the correct pattern for cookies
-  const cookieStore = cookies();
-  const supabase = createServerComponentClient({ cookies: () => cookieStore });
+  const supabase = await createServerSupabaseClient();
 
   let products = [];
   let error = null;
