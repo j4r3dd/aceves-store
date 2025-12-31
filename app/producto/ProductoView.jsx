@@ -36,13 +36,29 @@ export default function ProductoView({ product, relatedProducts = [] }) {
       return;
     }
 
+    // TikTok tracking
     tiktokPixel.trackAddToCart(product, 1);
+
+    // Meta Pixel tracking - AddToCart event
+    if (typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'AddToCart', {
+        content_ids: [product.id],
+        content_type: 'product',
+        contents: [{
+          id: product.id,
+          quantity: 1,
+          item_price: product.price
+        }],
+        currency: 'MXN',
+        value: product.price
+      });
+    }
 
     addToCart({
       ...product,
       selectedSize
     });
-    
+
     // Scroll to top for better UX after adding to cart
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

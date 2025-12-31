@@ -53,6 +53,13 @@ export default function RegistrationForm({ onSuccess, redirectTo = '/cuenta' }) 
         telefono: formData.telefono,
       });
 
+      // Track CompleteRegistration event - Meta Pixel
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', 'CompleteRegistration', {
+          status: true
+        });
+      }
+
       // Success!
       if (onSuccess) {
         setIsLoading(false);

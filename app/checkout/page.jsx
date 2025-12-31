@@ -88,6 +88,23 @@ export default function CheckoutPage() {
     }
   };
 
+  // Track InitiateCheckout when page loads
+  useEffect(() => {
+    if (cart.length > 0 && typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'InitiateCheckout', {
+        content_ids: cart.map(item => item.id),
+        contents: cart.map(item => ({
+          id: item.id,
+          quantity: item.quantity,
+          item_price: item.price
+        })),
+        currency: 'MXN',
+        num_items: cart.reduce((sum, item) => sum + item.quantity, 0),
+        value: subtotal
+      });
+    }
+  }, []); // Only run once on mount
+
   // Pre-fill form with user's default address if authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -238,11 +255,25 @@ export default function CheckoutPage() {
             setIsProcessing(true);
 
             try {
-              // Track AddPaymentInfo event when PayPal is approved
+              // Track AddPaymentInfo event when PayPal is approved - TikTok
               await tiktokPixel.trackAddPaymentInfoEnhanced(cart, {
                 email: form.email,
                 phone: form.telefono
               });
+
+              // Track AddPaymentInfo event - Meta Pixel
+              if (typeof window !== 'undefined' && window.fbq) {
+                window.fbq('track', 'AddPaymentInfo', {
+                  content_ids: cart.map(item => item.id),
+                  contents: cart.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity,
+                    item_price: item.price
+                  })),
+                  currency: 'MXN',
+                  value: total
+                });
+              }
 
               // Capture the payment
               console.log('🔄 Attempting to capture order...');
@@ -264,7 +295,7 @@ export default function CheckoutPage() {
               const savedOrder = await saveOrderToDatabase(form, order.id);
               console.log('✅ Order saved successfully');
 
-              // 3. Track Purchase event
+              // 3. Track Purchase event - TikTok
               await tiktokPixel.trackPurchaseEnhanced({
                 email: form.email,
                 phone: form.telefono,
@@ -276,8 +307,22 @@ export default function CheckoutPage() {
                 phone: form.telefono
               });
 
+              // 3b. Track Purchase event - Meta Pixel
+              if (typeof window !== 'undefined' && window.fbq) {
+                window.fbq('track', 'Purchase', {
+                  content_ids: cart.map(item => item.id),
+                  contents: cart.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity,
+                    item_price: item.price
+                  })),
+                  content_type: 'product',
+                  currency: 'MXN',
+                  value: total
+                });
+              }
 
-              // 3. Send to Google Sheets (existing flow)
+              // 4. Send to Google Sheets (existing flow)
               const productos = cart
                 .map((item) => `${item.quantity}x ${item.name}${item.selectedSize ? ` (Talla: ${item.selectedSize})` : ''}`)
                 .join(', ');
