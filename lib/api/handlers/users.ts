@@ -58,7 +58,7 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
         nombre: data.nombre,
         phone: data.telefono,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.acevesoficial.com'}/login?confirmed=true`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.acevesoficial.com'}/cuenta`,
     },
   });
 

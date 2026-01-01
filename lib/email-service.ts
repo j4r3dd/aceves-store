@@ -326,6 +326,11 @@ export const emailService = {
    * Sent when a new user registers
    */
   async sendWelcomeEmail(email: string, name: string): Promise<any> {
+    console.log('📧 [EmailService] sendWelcomeEmail called:', { email, name });
+    console.log('📧 [EmailService] Resend initialized:', !!resend);
+    console.log('📧 [EmailService] FROM_EMAIL:', FROM_EMAIL);
+    console.log('📧 [EmailService] RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+
     if (!resend) {
       console.warn('⚠️ Resend not initialized - skipping welcome email');
       return null;
@@ -406,6 +411,13 @@ export const emailService = {
     `;
 
     try {
+      console.log('📧 [EmailService] Preparing to send email via Resend...');
+      console.log('📧 [EmailService] Email payload:', {
+        from: FROM_EMAIL,
+        to: email,
+        subject: '💎 Bienvenido a Aceves Joyería',
+      });
+
       const { data: result, error } = await resend.emails.send({
         from: FROM_EMAIL,
         to: email,
@@ -413,15 +425,21 @@ export const emailService = {
         html,
       });
 
+      console.log('📧 [EmailService] Resend API call completed');
+      console.log('📧 [EmailService] Result:', result);
+      console.log('📧 [EmailService] Error:', error);
+
       if (error) {
-        console.error('❌ Error sending welcome email:', error);
+        console.error('❌ [EmailService] Error sending welcome email:', error);
+        console.error('❌ [EmailService] Error details:', JSON.stringify(error, null, 2));
         throw error;
       }
 
-      console.log('✅ Welcome email sent:', result?.id);
+      console.log('✅ [EmailService] Welcome email sent successfully. Email ID:', result?.id);
       return result;
     } catch (error) {
-      console.error('❌ Failed to send welcome email:', error);
+      console.error('❌ [EmailService] Exception in sendWelcomeEmail:', error);
+      console.error('❌ [EmailService] Exception details:', JSON.stringify(error, null, 2));
       // Don't throw for welcome emails - they're nice-to-have
       return null;
     }

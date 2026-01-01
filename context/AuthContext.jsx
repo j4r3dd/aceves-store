@@ -139,13 +139,33 @@ export function AuthProvider({ children }) {
         const now = new Date();
         const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
 
+        console.log('📧 Checking if welcome email should be sent:', {
+          userId: data.user.id,
+          createdAt: createdAt.toISOString(),
+          hoursSinceCreation: hoursSinceCreation.toFixed(2),
+          shouldSend: hoursSinceCreation < 24
+        });
+
         // If account was created within the last 24 hours, send welcome email
         if (hoursSinceCreation < 24) {
+          console.log('📧 Triggering welcome email API call...');
           fetch('/api/users/send-welcome-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: data.user.id }),
-          }).catch(err => console.error('Failed to trigger welcome email:', err));
+          })
+          .then(res => {
+            console.log('📧 Welcome email API response status:', res.status);
+            return res.json();
+          })
+          .then(data => {
+            console.log('📧 Welcome email API response:', data);
+          })
+          .catch(err => {
+            console.error('❌ Failed to trigger welcome email:', err);
+          });
+        } else {
+          console.log('⏭️ Skipping welcome email - account older than 24 hours');
         }
       }
 
