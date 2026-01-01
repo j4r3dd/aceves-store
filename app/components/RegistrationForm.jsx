@@ -19,6 +19,7 @@ export default function RegistrationForm({ onSuccess, redirectTo = '/cuenta' }) 
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,6 +29,7 @@ export default function RegistrationForm({ onSuccess, redirectTo = '/cuenta' }) 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
@@ -48,7 +50,7 @@ export default function RegistrationForm({ onSuccess, redirectTo = '/cuenta' }) 
     setIsLoading(true);
 
     try {
-      await signUp(formData.email, formData.password, {
+      const result = await signUp(formData.email, formData.password, {
         nombre: formData.nombre,
         telefono: formData.telefono,
       });
@@ -60,13 +62,26 @@ export default function RegistrationForm({ onSuccess, redirectTo = '/cuenta' }) 
         });
       }
 
-      // Success!
-      if (onSuccess) {
-        setIsLoading(false);
-        onSuccess();
+      setIsLoading(false);
+
+      // Show success message - user needs to confirm email
+      if (result.requiresConfirmation) {
+        setSuccess(result.message || 'Cuenta creada exitosamente. Por favor revisa tu correo para confirmar tu cuenta.');
+        // Clear form
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          nombre: '',
+          telefono: '',
+        });
       } else {
-        setIsLoading(false); // Stop loading before pushing
-        router.push(redirectTo);
+        // Fallback: if confirmation not required, redirect
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push(redirectTo);
+        }
       }
     } catch (err) {
       console.error('Registration error:', err);
@@ -80,6 +95,14 @@ export default function RegistrationForm({ onSuccess, redirectTo = '/cuenta' }) 
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
           {error}
+        </div>
+      )}
+
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg text-sm">
+          <p className="font-semibold mb-1">¡Cuenta creada exitosamente!</p>
+          <p>{success}</p>
+          <p className="mt-2 text-xs">Revisa tu bandeja de entrada y spam. Si no recibes el correo en unos minutos, contáctanos.</p>
         </div>
       )}
 

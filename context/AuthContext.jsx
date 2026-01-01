@@ -131,6 +131,24 @@ export function AuthProvider({ children }) {
       }
 
       console.log('Sign in successful');
+
+      // Send welcome email on first login (if user was created recently)
+      // Fire and forget - don't block login flow
+      if (data.user) {
+        const createdAt = new Date(data.user.created_at);
+        const now = new Date();
+        const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+
+        // If account was created within the last 24 hours, send welcome email
+        if (hoursSinceCreation < 24) {
+          fetch('/api/users/send-welcome-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: data.user.id }),
+          }).catch(err => console.error('Failed to trigger welcome email:', err));
+        }
+      }
+
       // Don't set loading=false here - onAuthStateChange will handle it
       return data;
     } catch (err) {
@@ -166,20 +184,15 @@ export function AuthProvider({ children }) {
         throw new Error(data.error || 'Error al crear la cuenta');
       }
 
-      console.log('Registration successful, now signing in...');
+      console.log('✅ Registration successful - email confirmation required');
+      setLoading(false);
 
-      // Now sign in the user automatically
-      try {
-        const signInResult = await signIn(email, password);
-        console.log('Auto sign-in successful');
-        return signInResult;
-      } catch (signInError) {
-        console.error('Auto sign-in failed:', signInError);
-        // Registration succeeded but auto-login failed
-        // User can manually log in
-        setLoading(false);
-        throw new Error('Cuenta creada exitosamente. Por favor inicia sesión manualmente.');
-      }
+      // Return success with confirmation requirement
+      return {
+        success: true,
+        requiresConfirmation: data.data?.requiresConfirmation || true,
+        message: 'Cuenta creada exitosamente. Por favor revisa tu correo para confirmar tu cuenta.',
+      };
     } catch (err) {
       console.error('Sign up exception:', err);
       setError(err.message);

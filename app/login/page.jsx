@@ -11,6 +11,7 @@ import RegistrationForm from '../components/RegistrationForm';
 export default function LoginPage() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/cuenta';
+  const confirmed = searchParams.get('confirmed') === 'true';
 
   // Default to 'login' tab, but allow 'register' via URL param
   const defaultTab = searchParams.get('tab') === 'register' ? 'register' : 'login';
@@ -22,6 +23,14 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           Bienvenido a Aceves Joyería
         </h1>
+
+        {/* Email Confirmation Success Message */}
+        {confirmed && (
+          <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+            <p className="font-semibold mb-1">✓ ¡Correo confirmado exitosamente!</p>
+            <p className="text-sm">Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.</p>
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="flex border-b border-gray-300 mb-6">

@@ -31,21 +31,25 @@ const service = SupabaseService.getInstance();
 
 /**
  * Register a new customer user
+ * With email confirmations enabled, users must verify their email before logging in
  */
-export const registerUser = async (data: UserRegistrationData): Promise<{ user: any; profile: any }> => {
-  // Use service role client for registration to ensure triggers have proper permissions
-  const supabase = createServiceRoleClient();
+export const registerUser = async (data: UserRegistrationData): Promise<{ user: any; requiresConfirmation: boolean }> => {
+  // Use service role client to check for existing users
+  const supabaseAdmin = createServiceRoleClient();
 
   // Check if user already exists by email (check auth.users via admin API)
-  const { data: existingUsers } = await supabase.auth.admin.listUsers();
+  const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
   const userExists = existingUsers?.users?.some((u: any) => u.email === data.email);
 
   if (userExists) {
     throw new ApiException(400, 'Ya existe una cuenta con este correo electrónico');
   }
 
-  // Create auth user with Supabase Auth (using normal signUp to allow immediate login)
-  // We use service role client to bypass email confirmation requirement
+  // Use a regular client (not service role) for signUp so Supabase sends confirmation email
+  const supabase = await createServerSupabaseClient();
+
+  // Create auth user with Supabase Auth
+  // Supabase will automatically send a confirmation email
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
@@ -54,7 +58,7 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
         nombre: data.nombre,
         phone: data.telefono,
       },
-      emailRedirectTo: undefined, // Disable email confirmation for now
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.acevesoficial.com'}/login?confirmed=true`,
     },
   });
 
@@ -68,7 +72,6 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
   }
 
   // Create profile record (using service role to bypass RLS during creation)
-  // Note: profiles table doesn't have an 'email' column - email is stored in auth.users
   const profileData = {
     id: authData.user.id,
     nombre: data.nombre,
@@ -80,27 +83,23 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
     newsletter_subscribed: true,
   };
 
-  const { data: profile, error: profileError } = await supabase
+  const { error: profileError } = await supabaseAdmin
     .from('profiles')
-    .upsert(profileData)
-    .select()
-    .single();
+    .upsert(profileData);
 
   if (profileError) {
     console.error('Profile creation error:', profileError);
     // Don't fail the registration if profile creation fails - it might be created by trigger
   }
 
-  // Send welcome email (fire and forget - don't block on email sending)
-  emailService.sendWelcomeEmail(data.email, data.nombre).catch((err) => {
-    console.error('Failed to send welcome email:', err);
-  });
+  // DON'T send welcome email here - send it after email confirmation
+  // The welcome email will be sent on first successful login
 
-  console.log('✅ User registered successfully:', authData.user.id);
+  console.log('✅ User registered successfully (confirmation required):', authData.user.id);
 
   return {
     user: authData.user,
-    profile: profile || profileData,
+    requiresConfirmation: true,
   };
 };
 
