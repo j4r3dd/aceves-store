@@ -36,18 +36,19 @@ export async function middleware(request: NextRequest) {
 
     // Define Content Security Policy
     // Crucially adding 'unsafe-eval' for script-src to fix PayPal SDK issue
+    // Added Meta Pixel (Facebook) and TikTok Pixel domains
     const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.paypal.com https://*.paypalobjects.com https://analytics.tiktok.com https://*.tiktok.com https://www.google-analytics.com https://www.googletagmanager.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.paypal.com https://*.paypalobjects.com https://analytics.tiktok.com https://*.tiktok.com https://*.tiktokw.us https://connect.facebook.net https://www.facebook.com https://*.facebook.net https://www.google-analytics.com https://www.googletagmanager.com https://script.google.com https://script.googleusercontent.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://*.paypal.com https://*.paypalobjects.com https://*.vercel-storage.com https://*.tiktok.com;
+    img-src 'self' blob: data: https://*.paypal.com https://*.paypalobjects.com https://*.vercel-storage.com https://*.tiktok.com https://*.tiktokw.us https://www.facebook.com https://*.facebook.com https://*.facebook.net;
     font-src 'self' https://fonts.gstatic.com;
     object-src 'none';
     base-uri 'self';
-    form-action 'self';
+    form-action 'self' https://www.facebook.com https://*.facebook.com;
     frame-ancestors 'none';
-    connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://analytics.tiktok.com https://*.tiktok.com https://*.supabase.co;
-    frame-src 'self' https://*.paypal.com https://*.paypalobjects.com;
+    connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://analytics.tiktok.com https://*.tiktok.com https://*.tiktokw.us https://www.facebook.com https://*.facebook.com https://*.facebook.net https://connect.facebook.net https://*.supabase.co https://script.google.com https://script.googleusercontent.com https://www.googletagmanager.com https://www.google-analytics.com;
+    frame-src 'self' https://*.paypal.com https://*.paypalobjects.com https://www.facebook.com https://*.facebook.com https://*.facebook.net;
   `;
 
     // Replace newlines with spaces for the header value

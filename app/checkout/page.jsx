@@ -44,6 +44,7 @@ export default function CheckoutPage() {
   const [paypalLoaded, setPaypalLoaded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); // Prevent double-capture
   const paypalRef = useRef();
+  const initiateCheckoutTracked = useRef(false); // Prevent duplicate InitiateCheckout events
 
   // NEW STATE VARIABLES FOR ENVIO CRUZADO
   const [envioCruzadoEnabled, setEnvioCruzadoEnabled] = useState(false);
@@ -88,10 +89,16 @@ export default function CheckoutPage() {
     }
   };
 
-  // Track InitiateCheckout when page loads
+  // Track InitiateCheckout when page loads (only once)
   useEffect(() => {
+    // Prevent duplicate events in React Strict Mode
+    if (initiateCheckoutTracked.current) {
+      console.log('⏭️ Meta Pixel: InitiateCheckout already tracked, skipping');
+      return;
+    }
+
     if (cart.length > 0 && typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', 'InitiateCheckout', {
+      const checkoutData = {
         content_ids: cart.map(item => item.id),
         contents: cart.map(item => ({
           id: item.id,
@@ -101,7 +108,14 @@ export default function CheckoutPage() {
         currency: 'MXN',
         num_items: cart.reduce((sum, item) => sum + item.quantity, 0),
         value: subtotal
-      });
+      };
+
+      console.log('🛒 Meta Pixel: Tracking InitiateCheckout event', checkoutData);
+      window.fbq('track', 'InitiateCheckout', checkoutData);
+      console.log('✅ Meta Pixel: InitiateCheckout event sent');
+
+      // Mark as tracked
+      initiateCheckoutTracked.current = true;
     }
   }, []); // Only run once on mount
 
@@ -263,7 +277,7 @@ export default function CheckoutPage() {
 
               // Track AddPaymentInfo event - Meta Pixel
               if (typeof window !== 'undefined' && window.fbq) {
-                window.fbq('track', 'AddPaymentInfo', {
+                const paymentData = {
                   content_ids: cart.map(item => item.id),
                   contents: cart.map(item => ({
                     id: item.id,
@@ -272,7 +286,11 @@ export default function CheckoutPage() {
                   })),
                   currency: 'MXN',
                   value: total
-                });
+                };
+
+                console.log('💳 Meta Pixel: Tracking AddPaymentInfo event', paymentData);
+                window.fbq('track', 'AddPaymentInfo', paymentData);
+                console.log('✅ Meta Pixel: AddPaymentInfo event sent');
               }
 
               // Capture the payment
@@ -309,7 +327,7 @@ export default function CheckoutPage() {
 
               // 3b. Track Purchase event - Meta Pixel
               if (typeof window !== 'undefined' && window.fbq) {
-                window.fbq('track', 'Purchase', {
+                const purchaseData = {
                   content_ids: cart.map(item => item.id),
                   contents: cart.map(item => ({
                     id: item.id,
@@ -319,7 +337,11 @@ export default function CheckoutPage() {
                   content_type: 'product',
                   currency: 'MXN',
                   value: total
-                });
+                };
+
+                console.log('🛒 Meta Pixel: Tracking Purchase event', purchaseData);
+                window.fbq('track', 'Purchase', purchaseData);
+                console.log('✅ Meta Pixel: Purchase event sent');
               }
 
               // 4. Send to Google Sheets (existing flow)
