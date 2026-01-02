@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '../../lib/supabase-server';
 import PageWrapper from '../components/PageWrapper';
 import ExpandableSection from '../components/ExpandableSection';
 import Script from 'next/script';
+import BannerSection from '../components/BannerSection';
 
 export const metadata = {
   title: 'Collares de Pareja | Joyería Artesanal para Enamorados | Aceves',
@@ -127,13 +128,7 @@ export default async function CollaresPage() {
         </div>
       ) : (
         <>
-          <img
-            src="https://hnaptwk79kknvilx.public.blob.vercel-storage.com/banners/banner_collares-yaV6BwuheDM9ALap1kv6ZTgXDHcXl2.jpg"
-            alt="Collares de Pareja para Enamorados - Colección Aceves"
-            className="w-[calc(100%+2rem)] -mx-4 max-w-none md:w-full md:mx-0 md:max-w-full rounded-none md:rounded-xl mb-8"
-            width="1200"
-            height="600"
-          />
+          <BannerSection section="collares" />
 
           {products.length === 0 ? (
             <div className="text-center p-8">

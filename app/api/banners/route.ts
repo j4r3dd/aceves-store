@@ -1,26 +1,28 @@
 // app/api/banners/route.ts
 
 import { NextRequest } from 'next/server';
-import { 
-  getAllBanners, 
+import {
+  getAllBanners,
   getBannerById,
-  createBanner, 
-  updateBanner, 
+  createBanner,
+  updateBanner,
   deleteBanner,
-  Banner 
+  Banner
 } from '../../../lib/api/handlers/banners';
-import { 
-  withErrorHandling, 
+import {
+  withErrorHandling,
   withValidation,
-  withAdmin 
+  withAdmin
 } from '../../../lib/api/middleware';
-import { 
-  successResponse 
+import {
+  successResponse
 } from '../../../lib/api/utils';
 
-// GET: Fetch all banners
-export const GET = withErrorHandling(async () => {
-  const banners = await getAllBanners();
+// GET: Fetch all banners (filtered by section)
+export const GET = withErrorHandling(async (req: NextRequest) => {
+  const { searchParams } = new URL(req.url);
+  const section = searchParams.get('section') || 'main';
+  const banners = await getAllBanners(section);
   return successResponse(banners);
 });
 
@@ -30,7 +32,8 @@ export const POST = withErrorHandling(
     withValidation<Omit<Banner, 'id'>>({
       image_url: { type: 'string', required: true },
       link: { type: 'string', required: true },
-      order: { type: 'number', required: true }
+      order: { type: 'number', required: true },
+      section: { type: 'string', required: true }
     }, async (req) => {
       const banner = req.validatedData;
       const result = await createBanner(banner);
@@ -46,7 +49,8 @@ export const PATCH = withErrorHandling(
       id: { type: 'string', required: true },
       image_url: { type: 'string' },
       link: { type: 'string' },
-      order: { type: 'number' }
+      order: { type: 'number' },
+      section: { type: 'string' }
     }, async (req) => {
       const { id, ...updates } = req.validatedData;
       const result = await updateBanner(id, updates);
@@ -60,7 +64,7 @@ export const DELETE = withErrorHandling(
   withAdmin(async (req: NextRequest) => {
     const url = new URL(req.url);
     const id = url.searchParams.get('id');
-    
+
     if (!id) {
       throw new Error('Banner ID is required');
     }

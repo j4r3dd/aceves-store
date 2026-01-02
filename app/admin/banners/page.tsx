@@ -8,12 +8,20 @@ import { Upload } from 'lucide-react';
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = useState([]);
+  const [selectedSection, setSelectedSection] = useState('main'); // 'main' | 'anillos' | 'collares'
   const [newBanner, setNewBanner] = useState({ image_url: '', link: '', order: 0 });
   const [isLoading, setIsLoading] = useState(false);
 
+  // Sections configuration
+  const sections = [
+    { id: 'main', label: '🏠 Main Page' },
+    { id: 'anillos', label: '💍 Anillos' },
+    { id: 'collares', label: '📿 Collares' },
+  ];
+
   const fetchBanners = async () => {
     try {
-      const response = await fetch('/api/banners', {
+      const response = await fetch(`/api/banners?section=${selectedSection}`, {
         credentials: 'include'
       });
 
@@ -40,7 +48,7 @@ export default function AdminBannersPage() {
       const response = await fetch('/api/banners', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBanner),
+        body: JSON.stringify({ ...newBanner, section: selectedSection }),
         credentials: 'include'
       });
 
@@ -132,11 +140,27 @@ export default function AdminBannersPage() {
 
   useEffect(() => {
     fetchBanners();
-  }, []);
+  }, [selectedSection]);
 
   return (
     <div className="p-6 space-y-6 text-white">
       <h1 className="text-2xl font-bold">📸 Manage Banners</h1>
+
+      {/* Section Tabs */}
+      <div className="flex gap-2 border-b border-gray-700 pb-2">
+        {sections.map(section => (
+          <button
+            key={section.id}
+            onClick={() => setSelectedSection(section.id)}
+            className={`px-4 py-2 rounded-t-lg transition-colors ${selectedSection === section.id
+                ? 'bg-purple-700 text-white font-bold'
+                : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+              }`}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
 
       <div className="mb-4">
         <label className="block text-sm font-medium mb-2">Banner Image</label>

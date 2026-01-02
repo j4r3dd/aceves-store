@@ -68,79 +68,79 @@ export default async function Home() {
     .select('*')
     .limit(6); // Limit to 6 featured products
 
-    
+
   // Add structured data for the homepage products
   function FeaturedProductsStructuredData() {
-  // Guard against empty products array
-  if (!products || products.length === 0) {
-    return null;
-  }
+    // Guard against empty products array
+    if (!products || products.length === 0) {
+      return null;
+    }
 
-  // Additional guard to make sure each product has the expected properties
-  const validProducts = products.filter(product => 
-    product && 
-    typeof product === 'object' && 
-    product.id && 
-    product.name && 
-    typeof product.price === 'number'
-  );
-
-  // If no valid products, return null
-  if (validProducts.length === 0) {
-    return null;
-  }
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "itemListElement": validProducts.map((product, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "item": {
-        "@type": "Product",
-        "name": product.name || 'Producto',
-        "description": product.description || '',
-        "image": product.images && product.images.length > 0 ? product.images[0] : '',
-        "url": `https://www.acevesoficial.com/producto/${product.id}`,
-        "sku": product.id,
-        "brand": {
-          "@type": "Brand",
-          "name": "Aceves Joyería"
-        },
-        "offers": {
-          "@type": "Offer",
-          "url": `https://www.acevesoficial.com/producto/${product.id}`,
-          "price": product.price,
-          "priceCurrency": "MXN",
-          "availability": "https://schema.org/InStock"
-        }
-      }
-    }))
-  };
-
-  // Safe execution with try/catch to avoid any potential rendering errors
-  try {
-    return (
-      <Script
-        id="featured-products-structured-data"
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+    // Additional guard to make sure each product has the expected properties
+    const validProducts = products.filter(product =>
+      product &&
+      typeof product === 'object' &&
+      product.id &&
+      product.name &&
+      typeof product.price === 'number'
     );
-  } catch (error) {
-    console.error("Error rendering FeaturedProductsStructuredData:", error);
-    return null;
+
+    // If no valid products, return null
+    if (validProducts.length === 0) {
+      return null;
+    }
+
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "itemListElement": validProducts.map((product, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "item": {
+          "@type": "Product",
+          "name": product.name || 'Producto',
+          "description": product.description || '',
+          "image": product.images && product.images.length > 0 ? product.images[0] : '',
+          "url": `https://www.acevesoficial.com/producto/${product.id}`,
+          "sku": product.id,
+          "brand": {
+            "@type": "Brand",
+            "name": "Aceves Joyería"
+          },
+          "offers": {
+            "@type": "Offer",
+            "url": `https://www.acevesoficial.com/producto/${product.id}`,
+            "price": product.price,
+            "priceCurrency": "MXN",
+            "availability": "https://schema.org/InStock"
+          }
+        }
+      }))
+    };
+
+    // Safe execution with try/catch to avoid any potential rendering errors
+    try {
+      return (
+        <Script
+          id="featured-products-structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      );
+    } catch (error) {
+      console.error("Error rendering FeaturedProductsStructuredData:", error);
+      return null;
+    }
   }
-}
 
   return (
     <>
       <ShopStructuredData />
       <WebsiteStructuredData />
       {products && products.length > 0 && <FeaturedProductsStructuredData />}
-      
-      <PageWrapper>
-        <PromoBanner />
+
+      <PromoBanner />
+      <PageWrapper className="!pt-0 md:pt-8">
         <BannerSection />
         <FeaturedProducts products={products} />
         <div className="mb-16" />

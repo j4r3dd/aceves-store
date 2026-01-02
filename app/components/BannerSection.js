@@ -5,7 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "../../lib/supabase"; // Adjust path if needed
 
-export default function BannerSection() {
+export default function BannerSection({ section = 'main' }) {
   const [current, setCurrent] = useState(0);
   const [images, setImages] = useState([]);
 
@@ -14,18 +14,19 @@ export default function BannerSection() {
       const { data, error } = await supabase
         .from('banners')
         .select('*')
+        .eq('section', section) // Filter by section
         .order('order');
 
       if (error) {
         console.error("❌ Failed to fetch banners:", error.message);
       } else {
-        console.log("✅ Banners fetched:", data);
+        console.log(`✅ Banners fetched for ${section}:`, data);
         setImages(data || []);
       }
     };
 
     fetchBanners();
-  }, []);
+  }, [section]);
 
   const prevSlide = () => {
     setCurrent((prev) => (prev - 1 + images.length) % images.length);
@@ -44,8 +45,8 @@ export default function BannerSection() {
   }, [nextSlide, images.length]);
 
   return (
-    <section className="w-full py-6 md:px-6 lg:px-8">
-      <div className="relative max-w-screen-lg mx-auto overflow-hidden shadow-lg -mx-4 w-[calc(100%+2rem)] md:mx-auto md:w-full rounded-none md:rounded-2xl">
+    <section className="w-full pt-0 pb-6 md:py-6 md:px-6 lg:px-8">
+      <div className="relative max-w-screen-lg shadow-lg -mx-4 w-[calc(100%+2rem)] md:mx-auto md:w-full rounded-none md:rounded-2xl overflow-hidden">
         {images.length === 0 ? (
           <div className="text-center text-gray-500 py-6">
             No banners to display.

@@ -7,13 +7,15 @@ export interface Banner {
   image_url: string;
   link: string;
   order: number;
+  section: 'main' | 'anillos' | 'collares';
 }
 
 const service = SupabaseService.getInstance();
 const TABLE_NAME = 'banners';
 
-export const getAllBanners = async (): Promise<Banner[]> => {
+export const getAllBanners = async (section: string = 'main'): Promise<Banner[]> => {
   return service.getTable<Banner>(TABLE_NAME, {
+    filter: { section },
     order: { column: 'order', ascending: true }
   });
 };
