@@ -238,7 +238,7 @@ export default async function AnillosPage() {
           <img
             src="https://hnaptwk79kknvilx.public.blob.vercel-storage.com/banners/banner_Anillo_mano-TO0508YUiYZrBxIAy0mgQ8yWX50QtW.jpg"
             alt="Anillos de Promesa para Parejas - Colección Aceves"
-            className="w-full rounded-xl mb-8"
+            className="w-[calc(100%+2rem)] -mx-4 max-w-none md:w-full md:mx-0 md:max-w-full rounded-none md:rounded-xl mb-8"
             width="1200"
             height="600"
           />

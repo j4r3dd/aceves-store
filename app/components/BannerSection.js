@@ -44,8 +44,8 @@ export default function BannerSection() {
   }, [nextSlide, images.length]);
 
   return (
-    <section className="w-full px-4 py-6 sm:px-6 lg:px-8">
-      <div className="relative max-w-screen-lg mx-auto overflow-hidden rounded-2xl shadow-lg">
+    <section className="w-full py-6 md:px-6 lg:px-8">
+      <div className="relative max-w-screen-lg mx-auto overflow-hidden shadow-lg -mx-4 w-[calc(100%+2rem)] md:mx-auto md:w-full rounded-none md:rounded-2xl">
         {images.length === 0 ? (
           <div className="text-center text-gray-500 py-6">
             No banners to display.

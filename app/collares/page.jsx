@@ -102,7 +102,7 @@ export default async function CollaresPage() {
   return (
     <PageWrapper>
       <CollaresSchema />
-      
+
       {/* Breadcrumbs para SEO */}
       <nav className="mb-4 text-sm text-gray-500" aria-label="Breadcrumb">
         <ol className="flex items-center space-x-2">
@@ -130,7 +130,7 @@ export default async function CollaresPage() {
           <img
             src="https://hnaptwk79kknvilx.public.blob.vercel-storage.com/banners/banner_collares-yaV6BwuheDM9ALap1kv6ZTgXDHcXl2.jpg"
             alt="Collares de Pareja para Enamorados - Colección Aceves"
-            className="w-full rounded-xl mb-8"
+            className="w-[calc(100%+2rem)] -mx-4 max-w-none md:w-full md:mx-0 md:max-w-full rounded-none md:rounded-xl mb-8"
             width="1200"
             height="600"
           />
@@ -170,21 +170,21 @@ export default async function CollaresPage() {
           )}
 
           {/* Expandable Section con información detallada */}
-          <ExpandableSection 
+          <ExpandableSection
             title="Información Detallada sobre Collares de Pareja"
             className="mt-8"
           >
             <div className="text-black leading-relaxed space-y-4">
               <p>
-                Descubre nuestra colección de <strong>collares de pareja</strong> únicos, diseñados especialmente 
-                para celebrar el amor entre dos personas. Cada pieza está creada artesanalmente con materiales 
-                de alta calidad como plata de ley y acero inoxidable, resistentes al uso diario y pensados para 
+                Descubre nuestra colección de <strong>collares de pareja</strong> únicos, diseñados especialmente
+                para celebrar el amor entre dos personas. Cada pieza está creada artesanalmente con materiales
+                de alta calidad como plata de ley y acero inoxidable, resistentes al uso diario y pensados para
                 durar tanto como su amor.
               </p>
               <p>
-                Los <strong>collares de pareja</strong> de Aceves representan un vínculo especial. Son perfectos 
-                para novios que desean llevar un símbolo de su amor cerca del corazón. Cada diseño está pensado 
-                para complementarse, creando un conjunto hermoso cuando están juntos, pero también luciendo 
+                Los <strong>collares de pareja</strong> de Aceves representan un vínculo especial. Son perfectos
+                para novios que desean llevar un símbolo de su amor cerca del corazón. Cada diseño está pensado
+                para complementarse, creando un conjunto hermoso cuando están juntos, pero también luciendo
                 espectacular por separado.
               </p>
               <p>
@@ -192,47 +192,47 @@ export default async function CollaresPage() {
               </p>
             </div>
           </ExpandableSection>
-          
+
           {/* Sección de FAQ para usuarios y SEO */}
           <section className="mt-16 bg-white rounded-lg p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-black mb-6">Preguntas Frecuentes sobre Collares de Pareja</h2>
-            
+
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-black">¿Qué significan los collares de pareja?</h3>
                 <p className="mt-2 text-gray-700">
-                  Los collares de pareja representan un vínculo especial entre dos personas enamoradas. Son una 
-                  forma de mostrar al mundo que pertenecen el uno al otro y de llevarse mutuamente siempre cerca 
-                  del corazón. En Aceves, diseñamos cada collar pensando en esa conexión única que cada pareja 
+                  Los collares de pareja representan un vínculo especial entre dos personas enamoradas. Son una
+                  forma de mostrar al mundo que pertenecen el uno al otro y de llevarse mutuamente siempre cerca
+                  del corazón. En Aceves, diseñamos cada collar pensando en esa conexión única que cada pareja
                   comparte.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-medium text-black">¿Cómo elegir el collar de pareja perfecto?</h3>
                 <p className="mt-2 text-gray-700">
-                  El collar perfecto debe reflejar el estilo de ambos y tener un significado especial para la 
-                  pareja. En Aceves ofrecemos diseños complementarios que se ven perfectos cuando están juntos, 
-                  pero también hermosos por separado. Considera el estilo personal de cada uno, si prefieren 
+                  El collar perfecto debe reflejar el estilo de ambos y tener un significado especial para la
+                  pareja. En Aceves ofrecemos diseños complementarios que se ven perfectos cuando están juntos,
+                  pero también hermosos por separado. Considera el estilo personal de cada uno, si prefieren
                   diseños minimalistas o más llamativos.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-medium text-black">¿De qué materiales están hechos los collares de pareja?</h3>
                 <p className="mt-2 text-gray-700">
-                  Nuestros collares de pareja están elaborados con materiales de alta calidad como plata de ley 
-                  y acero inoxidable, garantizando durabilidad y resistencia al uso diario. Cada pieza es diseñada 
-                  artesanalmente para que sea única como su historia de amor. Todos nuestros materiales son 
+                  Nuestros collares de pareja están elaborados con materiales de alta calidad como plata de ley
+                  y acero inoxidable, garantizando durabilidad y resistencia al uso diario. Cada pieza es diseñada
+                  artesanalmente para que sea única como su historia de amor. Todos nuestros materiales son
                   hipoalergénicos y aptos para uso constante.
                 </p>
               </div>
-              
+
               <div>
                 <h3 className="text-lg font-medium text-black">¿Se pueden personalizar los collares de pareja?</h3>
                 <p className="mt-2 text-gray-700">
-                  ¡Sí! Ofrecemos opciones de personalización como grabados de nombres, fechas importantes o 
-                  mensajes especiales. Los collares de pareja personalizados son perfectos para aniversarios, 
+                  ¡Sí! Ofrecemos opciones de personalización como grabados de nombres, fechas importantes o
+                  mensajes especiales. Los collares de pareja personalizados son perfectos para aniversarios,
                   cumpleaños o cualquier ocasión especial donde quieran celebrar su amor único.
                 </p>
               </div>
@@ -243,11 +243,11 @@ export default async function CollaresPage() {
           <div className="mt-12 text-center">
             <h2 className="text-xl font-bold text-primary mb-4">Encuentra el Collar de Pareja Perfecto</h2>
             <p className="text-lg text-gray-700 mb-6">
-              Explora nuestra colección de collares de pareja artesanales y encuentra la pieza ideal para 
+              Explora nuestra colección de collares de pareja artesanales y encuentra la pieza ideal para
               expresar su amor. Envío gratis en compras mayores a $999 MXN.
             </p>
-            <Link 
-              href="/guia-cuidados" 
+            <Link
+              href="/guia-cuidados"
               className="inline-block bg-primary text-white px-6 py-3 rounded-full hover:bg-accent transition-colors"
             >
               Cuidados para tus Collares
@@ -255,7 +255,7 @@ export default async function CollaresPage() {
           </div>
         </>
       )}
-      
+
     </PageWrapper>
   );
 }
