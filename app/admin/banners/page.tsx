@@ -146,6 +146,7 @@ export default function AdminBannersPage() {
           category="banners"
           productName={`banner-${Date.now()}`} // Unique folder mostly
           maxImages={1}
+          apiEndpoint="/api/banners/upload"
         />
       </div>
       <input

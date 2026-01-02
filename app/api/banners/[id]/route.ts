@@ -1,27 +1,28 @@
 // app/api/banners/[id]/route.ts
 
 import { NextRequest } from 'next/server';
-import { 
-  getBannerById, 
-  updateBanner, 
+import {
+  getBannerById,
+  updateBanner,
   deleteBanner,
-  Banner 
+  Banner
 } from '../../../../lib/api/handlers/banners';
-import { 
-  withErrorHandling, 
+import {
+  withErrorHandling,
   withValidation,
-  withAdmin 
+  withAdmin
 } from '../../../../lib/api/middleware';
-import { 
-  successResponse 
+import {
+  successResponse
 } from '../../../../lib/api/utils';
 
 // GET: Fetch a specific banner by ID
 export const GET = withErrorHandling(async (
-  req: NextRequest, 
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) => {
-  const banner = await getBannerById(params.id);
+  const { id } = await params;
+  const banner = await getBannerById(id);
   return successResponse(banner);
 });
 
@@ -34,22 +35,25 @@ export const PATCH = withErrorHandling(
       order: { type: 'number' },
     }, async (
       req,
-      { params }: { params: { id: string } }
+      { params }: { params: Promise<{ id: string }> }
     ) => {
       const updates = req.validatedData;
-      const result = await updateBanner(params.id, updates);
+      const { id } = await params;
+      const result = await updateBanner(id, updates);
       return successResponse(result);
     })
   )
 );
 
+
 // DELETE: Delete a specific banner (admin only)
 export const DELETE = withErrorHandling(
   withAdmin(async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
   ) => {
-    await deleteBanner(params.id);
+    const { id } = await params;
+    await deleteBanner(id);
     return successResponse({ success: true });
   })
 );

@@ -12,6 +12,7 @@ interface ImageUploadManagerProps {
     productName: string;
     existingSlug?: string;
     maxImages?: number;
+    apiEndpoint?: string; // Optional custom endpoint
 }
 
 export default function ImageUploadManager({
@@ -20,7 +21,8 @@ export default function ImageUploadManager({
     category,
     productName,
     existingSlug,
-    maxImages = 10
+    maxImages = 10,
+    apiEndpoint = '/api/products/images' // Default to products endpoint
 }: ImageUploadManagerProps) {
     const [uploading, setUploading] = useState(false);
     const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
@@ -42,12 +44,20 @@ export default function ImageUploadManager({
 
         try {
             const formData = new FormData();
-            files.forEach((file, i) => formData.append(`file${i}`, file));
-            formData.append('category', category);
-            formData.append('productName', productName);
-            if (existingSlug) formData.append('existingSlug', existingSlug);
 
-            const response = await fetch('/api/products/images', {
+            // Handle different endpoints expecting different fields
+            if (apiEndpoint.includes('banners')) {
+                // Banners endpoint expects a single 'file'
+                formData.append('file', files[0]);
+            } else {
+                // Products endpoint expects 'file0', 'file1', etc.
+                files.forEach((file, i) => formData.append(`file${i}`, file));
+                formData.append('category', category);
+                formData.append('productName', productName);
+                if (existingSlug) formData.append('existingSlug', existingSlug);
+            }
+
+            const response = await fetch(apiEndpoint, {
                 method: 'POST',
                 body: formData,
                 // credentials: 'include' // Usually needed, let's keep it consistent if needed for session
@@ -59,7 +69,14 @@ export default function ImageUploadManager({
             }
 
             const data = await response.json();
-            const newUrls = data.images.map((img: any) => img.url);
+
+            // Normalize response: banners returns {image: {url: ...}}, products returns {images: [{url: ...}]}
+            let newUrls: string[] = [];
+            if (data.image) {
+                newUrls = [data.image.url];
+            } else if (data.images) {
+                newUrls = data.images.map((img: any) => img.url);
+            }
 
             // Append new URLs to existing images
             onChange([...images, ...newUrls]);
