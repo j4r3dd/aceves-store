@@ -74,7 +74,7 @@ export const registerUser = async (data: UserRegistrationData): Promise<{ user: 
   // Create profile record (using service role to bypass RLS during creation)
   const profileData = {
     id: authData.user.id,
-    nombre: data.nombre,
+    nombre: data.nombre || '¿Cómo estás?',
     phone: data.telefono,
     role: 'customer',
     total_orders: 0,

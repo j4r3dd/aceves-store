@@ -1,5 +1,5 @@
 // app/layout.js
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import { CartProvider } from "../context/CartContext";
@@ -17,6 +17,11 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
 });
 
@@ -48,11 +53,11 @@ export default async function RootLayout({ children }) {
   const canonicalUrl = `https://www.acevesoficial.com/${path}`;
 
   return (
-    <html lang="es" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="es" className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable}`}>
       <head>
         <link rel="canonical" href={canonicalUrl} />
         <OrganizationSchema />
-        
+
         {/* TikTok Pixel Code */}
         <script
           dangerouslySetInnerHTML={{

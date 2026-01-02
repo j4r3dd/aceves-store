@@ -18,9 +18,9 @@ export default function LoginPage() {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-12">
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+    <div className="min-h-screen bg-[#092536] flex items-center justify-center py-12 px-6">
+      <div className="bg-white rounded-lg shadow-md p-8 w-full max-w-2xl">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800 font-serif">
           Bienvenido a Aceves Joyería
         </h1>
 
@@ -36,21 +36,19 @@ export default function LoginPage() {
         <div className="flex border-b border-gray-300 mb-6">
           <button
             onClick={() => setActiveTab('login')}
-            className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
-              activeTab === 'login'
-                ? 'border-b-2 border-[#092536] text-[#092536]'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${activeTab === 'login'
+              ? 'border-b-2 border-[#092536] text-[#092536]'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             Iniciar Sesión
           </button>
           <button
             onClick={() => setActiveTab('register')}
-            className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${
-              activeTab === 'register'
-                ? 'border-b-2 border-[#092536] text-[#092536]'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className={`flex-1 py-3 px-4 text-center font-medium transition-colors ${activeTab === 'register'
+              ? 'border-b-2 border-[#092536] text-[#092536]'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
           >
             Crear Cuenta
           </button>

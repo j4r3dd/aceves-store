@@ -17,18 +17,18 @@ export function AuthProvider({ children }) {
   const fetchProfile = async (userId) => {
     try {
       console.log('Fetching profile for user:', userId);
-      
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (error) {
         console.error('Profile fetch error:', error);
         return null;
       }
-      
+
       console.log('Profile data received:', data);
       return data;
     } catch (err) {
@@ -42,6 +42,34 @@ export function AuthProvider({ children }) {
     let isMounted = true;
     let initialLoadComplete = false;
 
+    // Check session IMMEDIATELY on mount
+    const checkSessionImmediately = async () => {
+      try {
+        const { data: { session: existingSession }, error } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
+        if (existingSession && isMounted && !initialLoadComplete) {
+          console.log('⚡ [AuthContext] Immediate session found');
+          setSession(existingSession);
+          setUser(existingSession.user);
+
+          if (existingSession.user) {
+            fetchProfile(existingSession.user.id).then(profileData => {
+              if (isMounted) setProfile(profileData);
+            });
+          }
+
+          initialLoadComplete = true; // Prevent race conditions
+          setLoading(false);
+        }
+      } catch (err) {
+        console.log('⚡ [AuthContext] No immediate session or error:', err.message);
+      }
+    };
+
+    checkSessionImmediately();
+
     // Set up auth state change listener FIRST
     // This ensures we catch the INITIAL_SESSION event from Supabase
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -53,20 +81,67 @@ export function AuthProvider({ children }) {
         // Clear any previous errors on auth state change
         setError(null);
 
+        // If we already loaded data from immediate check and nothing changed, skip
+        if (initialLoadComplete && newSession?.user?.id === user?.id && event === 'INITIAL_SESSION') {
+          return;
+        }
+
         setSession(newSession);
         setUser(newSession?.user || null);
 
         // Update profile when auth state changes
         if (newSession?.user) {
-          const profileData = await fetchProfile(newSession.user.id);
-          if (isMounted) {
-            setProfile(profileData);
+          // Fetch profile asynchronously - DON'T await it to block the UI
+          fetchProfile(newSession.user.id).then(profileData => {
+            if (isMounted) {
+              setProfile(profileData);
+            }
+          });
+
+          // Send welcome email on first sign-in after email confirmation
+          // This triggers when user clicks the confirmation link in their email
+          if (event === 'SIGNED_IN' && newSession.user) {
+            const createdAt = new Date(newSession.user.created_at);
+            const now = new Date();
+            const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+
+            console.log('📧 [onAuthStateChange] Checking if welcome email should be sent:', {
+              event,
+              userId: newSession.user.id,
+              createdAt: createdAt.toISOString(),
+              hoursSinceCreation: hoursSinceCreation.toFixed(2),
+              shouldSend: hoursSinceCreation < 24
+            });
+
+            // If account was created within the last 24 hours, try to send welcome email
+            // (The API is now idempotent so it's safe to call multiple times)
+            if (hoursSinceCreation < 24) {
+              console.log('📧 [onAuthStateChange] Triggering welcome email API call...');
+              fetch('/api/users/send-welcome-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                // Don't send body - the API uses the authenticated session to get user ID
+              })
+                .then(res => {
+                  console.log('📧 [onAuthStateChange] Welcome email API response status:', res.status);
+                  return res.json();
+                })
+                .then(data => {
+                  console.log('📧 [onAuthStateChange] Welcome email API response:', data);
+                })
+                .catch(err => {
+                  console.error('❌ [onAuthStateChange] Failed to trigger welcome email:', err);
+                });
+            } else {
+              console.log('⏭️ [onAuthStateChange] Skipping welcome email - account older than 24 hours');
+            }
           }
         } else {
           setProfile(null);
         }
 
-        // Mark loading as false after handling auth state
+        // Mark loading as false IMMEDIATELY after checking auth
+        // We don't want to wait for profile fetch or Welcome email
         if (isMounted) {
           initialLoadComplete = true;
           setLoading(false);
@@ -152,18 +227,18 @@ export function AuthProvider({ children }) {
           fetch('/api/users/send-welcome-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: data.user.id }),
+            // Don't send body - the API uses the authenticated session to get user ID
           })
-          .then(res => {
-            console.log('📧 Welcome email API response status:', res.status);
-            return res.json();
-          })
-          .then(data => {
-            console.log('📧 Welcome email API response:', data);
-          })
-          .catch(err => {
-            console.error('❌ Failed to trigger welcome email:', err);
-          });
+            .then(res => {
+              console.log('📧 Welcome email API response status:', res.status);
+              return res.json();
+            })
+            .then(data => {
+              console.log('📧 Welcome email API response:', data);
+            })
+            .catch(err => {
+              console.error('❌ Failed to trigger welcome email:', err);
+            });
         } else {
           console.log('⏭️ Skipping welcome email - account older than 24 hours');
         }
@@ -253,8 +328,8 @@ export function AuthProvider({ children }) {
 
   // For debugging - remove in production
   useEffect(() => {
-    console.log('Auth state updated:', { 
-      user: user?.id, 
+    console.log('Auth state updated:', {
+      user: user?.id,
       profile: profile?.role,
       isAuthenticated: !!user,
       isAdmin: isAdmin()
@@ -283,10 +358,10 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 }

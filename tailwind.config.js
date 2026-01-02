@@ -12,6 +12,9 @@ module.exports = {
         background: "#eaf0f2",   // Light ice blue
         accent: "#759bbb",       // Soft blue
       },
+      fontFamily: {
+        serif: ['var(--font-playfair)', 'serif'],
+      },
       keyframes: {
         slideDown: {
           "0%": { opacity: 0, transform: "translateY(-10%)" },

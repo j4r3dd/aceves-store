@@ -76,7 +76,7 @@ export default function LoginForm({ onSuccess, redirectTo = '/cuenta' }) {
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#092536] focus:border-transparent transition"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#092536] focus:border-transparent transition text-[#092536]"
           placeholder="tu@email.com"
         />
       </div>
@@ -92,7 +92,7 @@ export default function LoginForm({ onSuccess, redirectTo = '/cuenta' }) {
           value={formData.password}
           onChange={handleChange}
           required
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#092536] focus:border-transparent transition"
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#092536] focus:border-transparent transition text-[#092536]"
           placeholder="Tu contraseña"
         />
       </div>
