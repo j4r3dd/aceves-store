@@ -1,7 +1,7 @@
 // lib/api/handlers/products.ts - Updated to use the service
 
 import { SupabaseService } from '../services/supabase-service';
-import { ApiException } from '../utils';
+import { ApiException, generateSlug } from '../utils';
 
 export interface Product {
   id: string;
@@ -10,6 +10,7 @@ export interface Product {
   price: number;
   description: string;
   images: string[];
+  slug?: string; // NEW: For folder organization
   envio_cruzado?: boolean;
   [key: string]: any;
 }
@@ -33,7 +34,8 @@ export const getProductById = async (id: string): Promise<Product> => {
 
 export const createProduct = async (product: Omit<Product, 'id'>): Promise<Product> => {
   const id = generateProductId(product.name); // Create a function to generate a unique ID
-  return service.createRecord<Product>(TABLE_NAME, { ...product, id });
+  const slug = generateSlug(product.name); // NEW: Auto-generate slug
+  return service.createRecord<Product>(TABLE_NAME, { ...product, id, slug });
 };
 
 export const updateProduct = async (id: string, product: Partial<Product>): Promise<Product> => {

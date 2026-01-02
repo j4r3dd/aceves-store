@@ -28,14 +28,14 @@ export class ApiException extends Error {
 
 export const handleError = (error: unknown) => {
   console.error('API Error:', error);
-  
+
   if (error instanceof ApiException) {
     return NextResponse.json(
       { error: error.message, details: error.details },
       { status: error.status }
     );
   }
-  
+
   // Handle Supabase errors
   if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
     return NextResponse.json(
@@ -43,7 +43,7 @@ export const handleError = (error: unknown) => {
       { status: 500 }
     );
   }
-  
+
   return NextResponse.json(
     { error: 'Internal server error' },
     { status: 500 }
@@ -53,3 +53,22 @@ export const handleError = (error: unknown) => {
 export const successResponse = <T>(data: T, status = 200) => {
   return NextResponse.json(data, { status });
 };
+
+export function generateSlug(text: string): string {
+  const slug = text
+    .toLowerCase()
+    .normalize('NFD') // Decompose accented characters
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics (á → a)
+    .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-'); // Collapse multiple hyphens
+
+  // Fallback for empty slugs (e.g., only special chars)
+  return slug || `product-${Date.now()}`;
+}
+
+export function generateProductFolder(category: string, productName: string): string {
+  const slug = generateSlug(productName);
+  return `${category}/${slug}`;
+}

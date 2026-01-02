@@ -56,7 +56,7 @@ export default function BannerSection() {
             style={{ transform: `translateX(-${current * 100}%)` }}
           >
             {images.map((img, index) => (
-              <Link key={index} href={img.link || "#"} className="min-w-full relative aspect-[16/9]">
+              <Link key={index} href={img.link || "#"} className="min-w-full relative aspect-[2/1]">
                 <Image
                   src={img.image_url}
                   alt={`Banner ${index + 1}`}

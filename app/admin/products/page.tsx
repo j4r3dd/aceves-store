@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import ImageUploadManager from '@/app/components/admin/ImageUploadManager';
 
 // Category options
 const CATEGORIES = [
@@ -30,7 +31,7 @@ export default function ProductManagerPage() {
     category: '',
     price: 0,
     description: '',
-    imageText: '',
+    images: [], // Array of strings (urls)
     sizes: [], // Array of { size: string, stock: number }
     envio_cruzado: false,
   });
@@ -110,32 +111,14 @@ export default function ProductManagerPage() {
       if (!newProduct.price || newProduct.price <= 0) {
         throw new Error('Please enter a valid price');
       }
-      if (!newProduct.imageText.trim()) {
-        throw new Error('Please enter at least one image URL');
-      }
-      if (newProduct.sizes.length === 0) {
-        throw new Error('Please add at least one size with stock');
-      }
-      // Validate all sizes have stock >= 0
-      const invalidSize = newProduct.sizes.find(s => !s.size.trim());
-      if (invalidSize) {
-        throw new Error('All sizes must have a name');
+      if (newProduct.images.length === 0) {
+        throw new Error('Please upload at least one image');
       }
 
       // Generate a more reliable ID
       const timestamp = Date.now();
       const randomString = Math.random().toString(36).substring(2, 8);
       const id = `${newProduct.name.toLowerCase().replace(/[^a-z0-9]/g, '')}-${timestamp}-${randomString}`;
-
-      // Process images and validate URLs
-      const images = newProduct.imageText
-        .split(',')
-        .map(url => url.trim())
-        .filter(url => url); // Remove empty items
-
-      if (images.length === 0) {
-        throw new Error('Please enter at least one valid image URL');
-      }
 
       // Create the product object with all fields
       const newEntry = {
@@ -144,7 +127,7 @@ export default function ProductManagerPage() {
         category: newProduct.category,
         price: Number(newProduct.price),
         description: newProduct.description.trim() || '',
-        images,
+        images: newProduct.images,
         sizes: newProduct.sizes.map(s => ({ size: s.size.trim(), stock: Number(s.stock) })),
         envio_cruzado: Boolean(newProduct.envio_cruzado),
       };
@@ -175,7 +158,7 @@ export default function ProductManagerPage() {
         category: '',
         price: 0,
         description: '',
-        imageText: '',
+        images: [],
         sizes: [],
         envio_cruzado: false,
       });
@@ -192,7 +175,7 @@ export default function ProductManagerPage() {
   const handleEdit = (product) => {
     setEditingProduct({
       ...product,
-      imageText: product.images?.join(', ') || '',
+      images: product.images || [],
       sizes: product.sizes || [],
     });
   };
@@ -212,18 +195,12 @@ export default function ProductManagerPage() {
         throw new Error('All sizes must have a name');
       }
 
-      // Parse images
-      const images = editingProduct.imageText
-        .split(',')
-        .map(url => url.trim())
-        .filter(url => url);
-
       const updates = {
         name: editingProduct.name.trim(),
         category: editingProduct.category,
         price: Number(editingProduct.price),
         description: editingProduct.description?.trim() || '',
-        images,
+        images: editingProduct.images,
         sizes: editingProduct.sizes.map(s => ({ size: s.size.trim(), stock: Number(s.stock) })),
         envio_cruzado: Boolean(editingProduct.envio_cruzado),
       };
@@ -365,11 +342,10 @@ export default function ProductManagerPage() {
                       (sizes) => setNewProduct({ ...newProduct, sizes }),
                       size
                     )}
-                    className={`px-3 py-1 rounded-full text-sm border transition ${
-                      isSelected
+                    className={`px-3 py-1 rounded-full text-sm border transition ${isSelected
                         ? 'bg-black text-white border-black'
                         : 'bg-white text-gray-700 border-gray-300 hover:border-gray-500'
-                    }`}
+                      }`}
                   >
                     {size}
                   </button>
@@ -437,27 +413,30 @@ export default function ProductManagerPage() {
           <Plus className="w-4 h-4" /> Add custom size
         </button>
 
-        <textarea
-          placeholder="Image URLs (comma-separated) *"
-          value={newProduct.imageText}
-          onChange={(e) => setNewProduct({ ...newProduct, imageText: e.target.value })}
-          className="w-full mb-4 p-2 border rounded h-20"
-          required
-        />
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Product Images *
+          </label>
+          <ImageUploadManager
+            images={newProduct.images}
+            onChange={(images) => setNewProduct({ ...newProduct, images })}
+            category={newProduct.category || 'uncategorized'}
+            productName={newProduct.name || `new-product-${Date.now()}`}
+            maxImages={10}
+          />
+        </div>
         <button
           onClick={handleAddProduct}
           disabled={isLoading}
-          className={`w-full bg-black text-white py-2 px-6 rounded ${
-            isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'
-          }`}
+          className={`w-full bg-black text-white py-2 px-6 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-800'
+            }`}
         >
           {isLoading ? 'Adding...' : 'Add Product'}
         </button>
-        
+
         {addMessage && (
-          <div className={`mt-4 p-3 rounded text-sm ${
-            addMessage.startsWith('❌') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-          }`}>
+          <div className={`mt-4 p-3 rounded text-sm ${addMessage.startsWith('❌') ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+            }`}>
             {addMessage}
           </div>
         )}
@@ -619,11 +598,10 @@ export default function ProductManagerPage() {
                           (sizes) => setEditingProduct({ ...editingProduct, sizes }),
                           size
                         )}
-                        className={`px-3 py-1 rounded-full text-sm border transition ${
-                          isSelected
+                        className={`px-3 py-1 rounded-full text-sm border transition ${isSelected
                             ? 'bg-black text-white border-black'
                             : 'bg-white text-gray-700 border-gray-300 hover:border-gray-500'
-                        }`}
+                          }`}
                       >
                         {size}
                       </button>
@@ -691,12 +669,19 @@ export default function ProductManagerPage() {
               <Plus className="w-4 h-4" /> Add custom size
             </button>
 
-            <textarea
-              placeholder="Image URLs (comma-separated) *"
-              value={editingProduct.imageText}
-              onChange={(e) => setEditingProduct({ ...editingProduct, imageText: e.target.value })}
-              className="w-full mb-4 p-2 border rounded h-20"
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Product Images *
+              </label>
+              <ImageUploadManager
+                images={editingProduct.images}
+                onChange={(images) => setEditingProduct({ ...editingProduct, images })}
+                category={editingProduct.category}
+                productName={editingProduct.name}
+                existingSlug={editingProduct.slug}
+                maxImages={10}
+              />
+            </div>
 
             <div className="flex gap-3">
               <button
