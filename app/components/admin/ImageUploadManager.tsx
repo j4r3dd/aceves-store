@@ -40,6 +40,17 @@ export default function ImageUploadManager({
             return;
         }
 
+        // Client-side size validation (4MB limit)
+        const MAX_SIZE_MB = 4;
+        const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
+        const oversizedFiles = files.filter(f => f.size > MAX_SIZE_BYTES);
+
+        if (oversizedFiles.length > 0) {
+            const names = oversizedFiles.map(f => f.name).join(', ');
+            toast.error(`File(s) too large (max ${MAX_SIZE_MB}MB): ${names}`);
+            return;
+        }
+
         setUploading(true);
 
         try {
@@ -60,12 +71,24 @@ export default function ImageUploadManager({
             const response = await fetch(apiEndpoint, {
                 method: 'POST',
                 body: formData,
-                // credentials: 'include' // Usually needed, let's keep it consistent if needed for session
             });
 
+            // Handle non-OK responses
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Upload failed');
+                // Check specifically for 413 Payload Too Large
+                if (response.status === 413) {
+                    throw new Error(`File(s) too large (server limit). Please upload files smaller than ${MAX_SIZE_MB}MB.`);
+                }
+
+                // Try to parse error as JSON, fallback to text
+                const text = await response.text();
+                try {
+                    const json = JSON.parse(text);
+                    throw new Error(json.error || `Upload failed with status ${response.status}`);
+                } catch (e) {
+                    // text wasn't JSON, use it directly or a generic message
+                    throw new Error(text || `Upload failed with status ${response.status}`);
+                }
             }
 
             const data = await response.json();
